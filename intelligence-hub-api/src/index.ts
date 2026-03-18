@@ -10,6 +10,7 @@ import { contentRoutes } from './routes/content.routes';
 import { insightsRoutes } from './routes/insights.routes';
 import { corpusRoutes } from './routes/corpus.routes';
 import { processingRoutes } from './routes/processing.routes';
+import { startScheduler } from './scheduler';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(errorHandler);
 if (env.NODE_ENV !== 'test') {
   app.listen(Number(env.PORT), () => {
     console.log(`Intelligence Hub API running on port ${env.PORT}`);
+    startScheduler();
   });
 }
 

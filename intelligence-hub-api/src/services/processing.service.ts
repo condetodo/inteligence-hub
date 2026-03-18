@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { runOrchestrator } from '../orchestrator';
 
 function getWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -36,6 +37,11 @@ export class ProcessingService {
           distribution: 'pending',
         },
       },
+    });
+
+    // Fire and forget: run orchestrator in background
+    runOrchestrator(instanceId, run.id).catch((e) => {
+      console.error(`[ProcessingService] Orchestrator failed:`, e.message);
     });
 
     return run;
