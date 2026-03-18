@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
+enum InstanceStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum InputType {
+  WHATSAPP
+  EMAIL
+  AUDIO
+  NOTE
+  INTERVIEW
+}
+
+enum InputStatus {
+  PENDING
+  PROCESSED
+}
+
+enum Platform {
+  LINKEDIN
+  X
+  TIKTOK
+  BLOG
+}
+
+enum ContentType {
+  POST
+  THREAD
+  SCRIPT
+  ARTICLE
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+}
+
+enum RunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum RunTrigger {
+  CRON
+  MANUAL
+}
+
+model User {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  password  String
+  name      String
+  role      UserRole       @default(OPERATOR)
+  createdAt DateTime       @default(now())
+  instances UserInstance[]
+}
+
+model Instance {
+  id          String         @id @default(cuid())
+  name        String
+  clientName  String
+  clientRole  String
+  company     String
+  industry    String
+  status      InstanceStatus @default(ACTIVE)
+  driveFolder String?
+  createdAt   DateTime       @default(now())
+  users       UserInstance[]
+  brandVoice  BrandVoice?
+  inputs      InputFile[]
+  corpus      WeeklyCorpus[]
+  content     ContentOutput[]
+  insights    InsightReport[]
+  runs        ProcessingRun[]
+}
+
+model UserInstance {
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  assignedAt DateTime @default(now())
+
+  @@id([userId, instanceId])
+}
+
+model BrandVoice {
+  id               String   @id @default(cuid())
+  instance         Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId       String   @unique
+  identity         String   @default("")
+  valueProposition String   @default("")
+  audience         String   @default("")
+  voiceTone        Json     @default("{}")
+  recurringTopics  Json     @default("[]")
+  positioning      String   @default("")
+  metrics          String   @default("")
+  insightHistory   Json     @default("[]")
+  updatedAt        DateTime @updatedAt
+}
+
+model InputFile {
+  id          String      @id @default(cuid())
+  instance    Instance    @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId  String
+  type        InputType
+  filename    String
+  content     String
+  status      InputStatus @default(PENDING)
+  uploadedAt  DateTime    @default(now())
+  processedAt DateTime?
+}
+
+model WeeklyCorpus {
+  id            String   @id @default(cuid())
+  instance      Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId    String
+  weekNumber    Int
+  year          Int
+  summary       Json     @default("{}")
+  topics        Json     @default("[]")
+  decisions     Json     @default("[]")
+  concerns      Json     @default("[]")
+  opportunities Json     @default("[]")
+  createdAt     DateTime @default(now())
+
+  @@unique([instanceId, weekNumber, year])
+}
+
+model ContentOutput {
+  id          String        @id @default(cuid())
+  instance    Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId  String
+  weekNumber  Int
+  year        Int
+  platform    Platform
+  type        ContentType
+  title       String
+  content     String
+  imageUrl    String?
+  imagePrompt String?
+  variant     String        @default("A")
+  status      ContentStatus @default(DRAFT)
+  engagement  Json?
+  createdAt   DateTime      @default(now())
+}
+
+model InsightReport {
+  id               String   @id @default(cuid())
+  instance         Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId       String
+  weekNumber       Int
+  year             Int
+  executiveSummary String
+  topTopics        Json
+  opportunity      String
+  evolution        String
+  questions        Json
+  recommendations  String
+  createdAt        DateTime @default(now())
+
+  @@unique([instanceId, weekNumber, year])
+}
+
+model ProcessingRun {
+  id          String     @id @default(cuid())
+  instance    Instance   @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId  String
+  weekNumber  Int
+  year        Int
+  status      RunStatus  @default(RUNNING)
+  steps       Json       @default("{}")
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  triggeredBy RunTrigger
+}
