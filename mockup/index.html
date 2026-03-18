@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horse Intelligence Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f3; color: #1a1a1a;
+  }
+
+  /* Brand colors - Horse Consulting */
+  :root {
+    --horse-black: #1a1a1a;
+    --horse-dark: #32373c;
+    --horse-gray-700: #4a4a4a;
+    --horse-gray-500: #7a7a7a;
+    --horse-gray-400: #9a9a9a;
+    --horse-gray-300: #c4c4c4;
+    --horse-gray-200: #e2e2e0;
+    --horse-gray-100: #f0f0ee;
+    --horse-bg: #f5f5f3;
+    --horse-white: #ffffff;
+    --horse-accent: #32373c;
+    --horse-accent-hover: #1a1a1a;
+    --status-draft: #d4a017;
+    --status-review: #2d6cce;
+    --status-approved: #2a9d5c;
+    --status-published: #1a1a1a;
+    --platform-linkedin: #0a66c2;
+    --platform-x: #1a1a1a;
+    --platform-instagram: #c13584;
+    --platform-blog: #2a9d5c;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 260px;
+    background: var(--horse-white); border-right: 1px solid var(--horse-gray-200);
+    padding: 0; display: flex; flex-direction: column;
+  }
+  .sidebar-logo {
+    padding: 24px 24px 20px; font-size: 22px; font-weight: 700;
+    color: var(--horse-black); display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--horse-gray-200); letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .sidebar-logo .logo-mark {
+    width: 32px; height: 32px; background: var(--horse-black); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 14px; font-weight: 700;
+  }
+  .sidebar-section {
+    padding: 20px 24px 8px; font-size: 10px; text-transform: uppercase;
+    color: var(--horse-gray-400); letter-spacing: 1.5px; font-weight: 600;
+  }
+  .sidebar-item {
+    padding: 10px 24px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: var(--horse-gray-500); transition: all 0.15s; font-weight: 400;
+  }
+  .sidebar-item:hover { background: var(--horse-gray-100); color: var(--horse-black); }
+  .sidebar-item.active { background: var(--horse-gray-100); color: var(--horse-black); font-weight: 500; border-left: 3px solid var(--horse-black); }
+  .sidebar-item .icon { width: 18px; text-align: center; font-size: 15px; }
+  .sidebar-instances { flex: 1; overflow-y: auto; }
+  .instance-item {
+    padding: 10px 24px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--horse-gray-500); transition: all 0.15s;
+  }
+  .instance-item:hover { background: var(--horse-gray-100); color: var(--horse-black); }
+  .instance-item.active { background: var(--horse-gray-100); color: var(--horse-black); }
+  .instance-avatar {
+    width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .instance-info { display: flex; flex-direction: column; }
+  .instance-name { font-weight: 500; color: var(--horse-black); font-size: 13px; }
+  .instance-role { font-size: 11px; color: var(--horse-gray-400); margin-top: 1px; }
+  .new-instance {
+    margin: 12px 16px 16px; padding: 10px; border: 1.5px dashed var(--horse-gray-300); border-radius: 8px;
+    text-align: center; color: var(--horse-gray-400); font-size: 13px; cursor: pointer;
+    transition: all 0.15s; font-weight: 500;
+  }
+  .new-instance:hover { border-color: var(--horse-black); color: var(--horse-black); }
+
+  /* Main */
+  .main { margin-left: 260px; }
+
+  /* Top bar */
+  .topbar {
+    height: 68px; border-bottom: 1px solid var(--horse-gray-200); display: flex;
+    align-items: center; justify-content: space-between; padding: 0 32px;
+    background: var(--horse-white);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-left h1 { font-size: 18px; font-weight: 600; color: var(--horse-black); }
+  .topbar-breadcrumb { font-size: 13px; color: var(--horse-gray-400); font-weight: 400; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 500; transition: all 0.15s; font-family: inherit;
+  }
+  .btn-primary {
+    background: var(--horse-black); color: var(--horse-white);
+  }
+  .btn-primary:hover { background: #000; }
+  .btn-outline {
+    background: transparent; border: 1.5px solid var(--horse-gray-300); color: var(--horse-dark);
+  }
+  .btn-outline:hover { border-color: var(--horse-black); color: var(--horse-black); }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--horse-gray-200);
+    padding: 0 32px; background: var(--horse-white);
+  }
+  .tab {
+    padding: 14px 20px; font-size: 14px; color: var(--horse-gray-400); cursor: pointer;
+    border-bottom: 2px solid transparent; transition: all 0.15s; font-weight: 500;
+  }
+  .tab:hover { color: var(--horse-dark); }
+  .tab.active { color: var(--horse-black); border-bottom-color: var(--horse-black); }
+  .tab .badge {
+    background: var(--horse-gray-100); color: var(--horse-gray-500); padding: 2px 7px; border-radius: 10px;
+    font-size: 11px; margin-left: 6px; font-weight: 600;
+  }
+  .tab.active .badge { background: var(--horse-black); color: var(--horse-white); }
+
+  /* Content area */
+  .content { padding: 24px 32px; }
+
+  /* Kanban */
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kanban-column {
+    background: var(--horse-white); border-radius: 12px; border: 1px solid var(--horse-gray-200);
+    min-height: 500px;
+  }
+  .column-header {
+    padding: 16px; border-bottom: 1px solid var(--horse-gray-200);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .column-title {
+    font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    color: var(--horse-dark);
+  }
+  .column-count {
+    background: var(--horse-gray-100); color: var(--horse-gray-500); padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+  }
+  .column-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Status dots */
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-draft { background: var(--status-draft); }
+  .dot-review { background: var(--status-review); }
+  .dot-approved { background: var(--status-approved); }
+  .dot-published { background: var(--status-published); }
+
+  /* Cards */
+  .card {
+    background: var(--horse-white); border: 1px solid var(--horse-gray-200); border-radius: 10px;
+    padding: 14px; cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card:hover { border-color: var(--horse-gray-300); box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .card-platform {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .platform-linkedin { background: rgba(10,102,194,0.08); color: var(--platform-linkedin); }
+  .platform-x { background: rgba(0,0,0,0.05); color: var(--platform-x); }
+  .platform-instagram { background: rgba(193,53,132,0.08); color: var(--platform-instagram); }
+  .platform-blog { background: rgba(42,157,92,0.08); color: var(--platform-blog); }
+  .card-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; line-height: 1.4; color: var(--horse-black); }
+  .card-preview { font-size: 12px; color: var(--horse-gray-500); line-height: 1.5; margin-bottom: 10px; }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--horse-gray-400);
+  }
+  .card-type {
+    background: var(--horse-gray-100); color: var(--horse-gray-500); padding: 2px 8px;
+    border-radius: 4px; font-size: 10px; font-weight: 500;
+  }
+  .card-actions { display: flex; gap: 5px; }
+  .card-action {
+    width: 28px; height: 28px; border-radius: 6px; border: 1.5px solid var(--horse-gray-200);
+    background: transparent; color: var(--horse-gray-400); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .card-action:hover { border-color: var(--horse-dark); color: var(--horse-dark); }
+  .card-action.approve:hover { border-color: var(--status-approved); color: var(--status-approved); background: rgba(42,157,92,0.05); }
+  .card-action.reject:hover { border-color: #d44; color: #d44; background: rgba(221,68,68,0.05); }
+
+  /* AI Options indicator */
+  .ai-options { display: flex; gap: 4px; margin-bottom: 8px; }
+  .ai-option {
+    width: 24px; height: 24px; border-radius: 6px; border: 1.5px solid var(--horse-gray-200);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: var(--horse-gray-400); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ai-option.selected {
+    border-color: var(--horse-black); color: var(--horse-white);
+    background: var(--horse-black);
+  }
+
+  /* Stats bar */
+  .stats-bar { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--horse-white); border: 1px solid var(--horse-gray-200); border-radius: 10px;
+    padding: 16px 20px; flex: 1;
+  }
+  .stat-label { font-size: 12px; color: var(--horse-gray-400); margin-bottom: 4px; font-weight: 500; }
+  .stat-value { font-size: 28px; font-weight: 700; }
+  .stat-value.draft { color: var(--status-draft); }
+  .stat-value.review { color: var(--status-review); }
+  .stat-value.approved { color: var(--status-approved); }
+  .stat-value.published { color: var(--horse-black); }
+
+  /* Week selector */
+  .week-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .week-label { font-size: 14px; color: var(--horse-gray-400); }
+  .week-current {
+    background: var(--horse-black); color: var(--horse-white); padding: 6px 14px;
+    border-radius: 8px; font-size: 13px; font-weight: 500;
+  }
+  .week-nav {
+    color: var(--horse-gray-400); cursor: pointer; font-size: 18px;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; border: 1px solid var(--horse-gray-200);
+    transition: all 0.15s;
+  }
+  .week-nav:hover { border-color: var(--horse-black); color: var(--horse-black); }
+
+  /* Processing status */
+  .processing-banner {
+    background: var(--horse-white); border: 1px solid var(--horse-gray-200);
+    border-radius: 10px; padding: 14px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .processing-left { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--horse-gray-700); }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--status-approved);
+  }
+  .processing-steps { display: flex; gap: 16px; font-size: 12px; color: var(--horse-gray-400); }
+  .step-done { color: var(--status-approved); font-weight: 500; }
+
+  /* Platform filter pills */
+  .filter-row { display: flex; align-items: center; gap: 8px; }
+  .filter-pill {
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--horse-gray-200); color: var(--horse-gray-500);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .filter-pill:hover { border-color: var(--horse-dark); color: var(--horse-dark); }
+  .filter-pill.active { background: var(--horse-black); color: var(--horse-white); border-color: var(--horse-black); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">H</div>
+    Horse
+  </div>
+
+  <div class="sidebar-section">General</div>
+  <div class="sidebar-item">
+    <span class="icon">◫</span> Dashboard
+  </div>
+  <div class="sidebar-item">
+    <span class="icon">◎</span> Equipo
+  </div>
+  <div class="sidebar-item">
+    <span class="icon">⚙</span> Configuración
+  </div>
+
+  <div class="sidebar-section">Instancias</div>
+  <div class="sidebar-instances">
+    <div class="instance-item active">
+      <div class="instance-avatar" style="background: #f0f0ee; color: var(--horse-black);">MR</div>
+      <div class="instance-info">
+        <span class="instance-name">Martín Rodríguez</span>
+        <span class="instance-role">CEO · AutomatizaPYME</span>
+      </div>
+    </div>
+    <div class="instance-item">
+      <div class="instance-avatar" style="background: #f0f0ee; color: var(--horse-dark);">CF</div>
+      <div class="instance-info">
+        <span class="instance-name">Carlos Fernández</span>
+        <span class="instance-role">CEO · Ford Argentina</span>
+      </div>
+    </div>
+    <div class="instance-item">
+      <div class="instance-avatar" style="background: #f0f0ee; color: var(--horse-dark);">LG</div>
+      <div class="instance-info">
+        <span class="instance-name">Laura García</span>
+        <span class="instance-role">Dir. Marketing · PharmaCo</span>
+      </div>
+    </div>
+    <div class="instance-item">
+      <div class="instance-avatar" style="background: #f0f0ee; color: var(--horse-dark);">RD</div>
+      <div class="instance-info">
+        <span class="instance-name">Roberto Díaz</span>
+        <span class="instance-role">Founder · TechHotel</span>
+      </div>
+    </div>
+  </div>
+  <div class="new-instance">+ Nueva instancia</div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Martín Rodríguez</h1>
+      <span class="topbar-breadcrumb">AutomatizaPYME · Semana 11, 2026</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-outline">↑ Subir inputs</button>
+      <button class="btn btn-primary">⚡ Procesar ahora</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active">Contenido <span class="badge">12</span></div>
+    <div class="tab">Inputs <span class="badge">7</span></div>
+    <div class="tab">Insights</div>
+    <div class="tab">Brand Voice</div>
+    <div class="tab">Historial</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Processing banner -->
+    <div class="processing-banner">
+      <div class="processing-left">
+        <div class="pulse"></div>
+        <span>Último procesamiento: Lunes 9 Mar, 7:00am — <strong>12 piezas generadas</strong></span>
+      </div>
+      <div class="processing-steps">
+        <span class="step-done">✓ Corpus</span>
+        <span class="step-done">✓ Brand Voice</span>
+        <span class="step-done">✓ Contenido</span>
+        <span class="step-done">✓ Insights</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Borradores</div>
+        <div class="stat-value draft">5</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">En revisión</div>
+        <div class="stat-value review">4</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Aprobados</div>
+        <div class="stat-value approved">2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Publicados</div>
+        <div class="stat-value published">1</div>
+      </div>
+    </div>
+
+    <!-- Week selector + filters -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+      <div class="week-selector" style="margin-bottom: 0;">
+        <span class="week-nav">‹</span>
+        <span class="week-current">Semana 11 · 9-15 Mar 2026</span>
+        <span class="week-nav">›</span>
+      </div>
+      <div class="filter-row">
+        <span class="filter-pill active">Todas</span>
+        <span class="filter-pill">LinkedIn</span>
+        <span class="filter-pill">X</span>
+        <span class="filter-pill">Instagram</span>
+        <span class="filter-pill">Blog</span>
+      </div>
+    </div>
+
+    <!-- Kanban board -->
+    <div class="kanban">
+      <!-- Column: Borrador -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title"><span class="dot dot-draft"></span> Borrador</div>
+          <span class="column-count">5</span>
+        </div>
+        <div class="column-body">
+          <div class="card">
+            <div class="card-platform platform-linkedin">in LinkedIn</div>
+            <div class="ai-options">
+              <div class="ai-option selected">A</div>
+              <div class="ai-option">B</div>
+              <div class="ai-option">C</div>
+            </div>
+            <div class="card-title">Automatizar no es reemplazar personas, es liberar su potencial</div>
+            <div class="card-preview">Hace 2 años un cliente me dijo: "No quiero que mis empleados hagan menos, quiero que hagan mejor"...</div>
+            <div class="card-footer">
+              <span class="card-type">Thought Leadership</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action" title="Editar">✎</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-x">𝕏 Twitter</div>
+            <div class="card-title">Hilo: 5 señales de que tu PYME necesita automatización</div>
+            <div class="card-preview">1/ El 80% de las PYMEs que conozco pierden 15hs semanales en tareas que un bot haría en 15 min...</div>
+            <div class="card-footer">
+              <span class="card-type">Hilo · 7 tweets</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action" title="Editar">✎</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-instagram">◉ Instagram</div>
+            <div class="card-title">Carousel: De 3 personas a 30 clientes sin contratar</div>
+            <div class="card-preview">Slide 1: "¿Escalar sin contratar? Es posible." · 7 slides con framework paso a paso...</div>
+            <div class="card-footer">
+              <span class="card-type">Carousel · 7 slides</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action" title="Editar">✎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column: En revisión -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title"><span class="dot dot-review"></span> En revisión</div>
+          <span class="column-count">4</span>
+        </div>
+        <div class="column-body">
+          <div class="card">
+            <div class="card-platform platform-linkedin">in LinkedIn</div>
+            <div class="ai-options">
+              <div class="ai-option">A</div>
+              <div class="ai-option selected">B</div>
+              <div class="ai-option">C</div>
+            </div>
+            <div class="card-title">El error más caro que cometí como consultor</div>
+            <div class="card-preview">Cobré por hora durante 3 años. Cuando lo calculé, estaba regalando el 40% de mi valor...</div>
+            <div class="card-footer">
+              <span class="card-type">Aprendizaje</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action reject" title="Rechazar">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-x">𝕏 Twitter</div>
+            <div class="card-title">Las grandes consultoras no automatizan, facturan horas.</div>
+            <div class="card-preview">Tweet standalone provocativo sobre el modelo de negocio tradicional vs automatización...</div>
+            <div class="card-footer">
+              <span class="card-type">Tweet standalone</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action reject" title="Rechazar">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-blog">▤ Blog</div>
+            <div class="card-title">Guía: Cómo automatizar tu PYME sin presupuesto enterprise</div>
+            <div class="card-preview">1.100 palabras · SEO: "automatización pymes" · 4 secciones con framework práctico...</div>
+            <div class="card-footer">
+              <span class="card-type">Artículo SEO · 1.1k palabras</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action reject" title="Rechazar">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-instagram">◉ Instagram</div>
+            <div class="card-title">De Buenos Aires a Madrid: lo que aprendí vendiendo a dos mercados</div>
+            <div class="card-preview">Caption personal sobre la experiencia de operar en Argentina y España simultáneamente...</div>
+            <div class="card-footer">
+              <span class="card-type">Caption</span>
+              <div class="card-actions">
+                <button class="card-action approve" title="Aprobar">✓</button>
+                <button class="card-action reject" title="Rechazar">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column: Aprobado -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title"><span class="dot dot-approved"></span> Aprobado</div>
+          <span class="column-count">2</span>
+        </div>
+        <div class="column-body">
+          <div class="card">
+            <div class="card-platform platform-linkedin">in LinkedIn</div>
+            <div class="card-title">3 herramientas que uso todos los días y cuestan menos de $50/mes</div>
+            <div class="card-preview">No necesitás Salesforce. No necesitás HubSpot Enterprise. Te cuento qué uso yo con 30 clientes activos...</div>
+            <div class="card-footer">
+              <span class="card-type">Lista curada</span>
+              <span style="color: var(--status-approved); font-size: 11px; font-weight: 500;">✓ 11 Mar</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-platform platform-x">𝕏 Twitter</div>
+            <div class="card-title">El mejor vendedor de tu PYME no cobra sueldo. Se llama automatización.</div>
+            <div class="card-preview">Tweet standalone · Programado para jueves 13 Mar...</div>
+            <div class="card-footer">
+              <span class="card-type">Tweet standalone</span>
+              <span style="color: var(--status-approved); font-size: 11px; font-weight: 500;">✓ 11 Mar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column: Publicado -->
+      <div class="kanban-column">
+        <div class="column-header">
+          <div class="column-title"><span class="dot dot-published"></span> Publicado</div>
+          <span class="column-count">1</span>
+        </div>
+        <div class="column-body">
+          <div class="card" style="border-color: var(--horse-gray-300);">
+            <div class="card-platform platform-linkedin">in LinkedIn</div>
+            <div class="card-title">Por qué dejé de buscar clientes grandes</div>
+            <div class="card-preview">Las PYMEs son el mercado más desatendido y más agradecido. Cambié mi estrategia hace 1 año y...</div>
+            <div class="card-footer">
+              <span style="color: var(--horse-black); font-size: 11px; font-weight: 500;">847 views · 23 reactions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

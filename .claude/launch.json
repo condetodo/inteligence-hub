@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mockup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "require('http').createServer((q,r)=>{r.end(require('fs').readFileSync('C:/Proyectos/Inteligence-hub/mockup/index.html'))}).listen(3456)"],
+      "port": 3456
+    }
+  ]
+}
