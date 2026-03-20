@@ -87,26 +87,26 @@ intelligence-hub-app/
 - Create: `intelligence-hub-app/.env.example`
 - Create: `intelligence-hub-app/.gitignore`
 
-- [ ] **Step 1: Create Next.js project**
+- [x] **Step 1: Create Next.js project**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
 npx create-next-app@14 intelligence-hub-app --typescript --tailwind --eslint --app --src-dir --no-import-alias
 ```
 
-- [ ] **Step 2: Create .env.example**
+- [x] **Step 2: Create .env.example**
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-- [ ] **Step 3: Create .env.local**
+- [x] **Step 3: Create .env.local**
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-- [ ] **Step 4: Configure Tailwind with Horse brand colors**
+- [x] **Step 4: Configure Tailwind with Horse brand colors**
 
 Replace `intelligence-hub-app/tailwind.config.ts`:
 
@@ -158,7 +158,7 @@ const config: Config = {
 export default config;
 ```
 
-- [ ] **Step 5: Set up globals.css**
+- [x] **Step 5: Set up globals.css**
 
 Replace `intelligence-hub-app/src/app/globals.css`:
 
@@ -176,7 +176,7 @@ body {
 }
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -193,7 +193,7 @@ git commit -m "feat: initialize intelligence-hub-app with Next.js 14, Tailwind, 
 **Files:**
 - Create: `intelligence-hub-app/src/lib/types.ts`
 
-- [ ] **Step 1: Create types file**
+- [x] **Step 1: Create types file**
 
 ```ts
 export interface User {
@@ -303,7 +303,7 @@ export interface ApiError {
 **Files:**
 - Create: `intelligence-hub-app/src/lib/api.ts`
 
-- [ ] **Step 1: Create fetch wrapper**
+- [x] **Step 1: Create fetch wrapper**
 
 ```ts
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
@@ -395,7 +395,7 @@ export const api = new ApiClient();
 **Files:**
 - Create: `intelligence-hub-app/src/lib/auth.ts`
 
-- [ ] **Step 1: Create auth context and hook**
+- [x] **Step 1: Create auth context and hook**
 
 ```tsx
 "use client";
@@ -470,7 +470,7 @@ export function useAuth() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -487,7 +487,7 @@ git commit -m "feat: add types, API client with JWT, and auth context"
 **Files:**
 - Create: `intelligence-hub-app/src/app/login/page.tsx`
 
-- [ ] **Step 1: Create login page**
+- [x] **Step 1: Create login page**
 
 ```tsx
 "use client";
@@ -593,7 +593,7 @@ export default function LoginPage() {
 **Files:**
 - Create: `intelligence-hub-app/src/app/register/page.tsx`
 
-- [ ] **Step 1: Create register page**
+- [x] **Step 1: Create register page**
 
 ```tsx
 "use client";
@@ -705,7 +705,7 @@ export default function RegisterPage() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -722,7 +722,7 @@ git commit -m "feat: add login and register pages"
 **Files:**
 - Create: `intelligence-hub-app/src/components/ui/Button.tsx`
 
-- [ ] **Step 1: Create Button component**
+- [x] **Step 1: Create Button component**
 
 ```tsx
 import { ButtonHTMLAttributes, forwardRef } from "react";
@@ -769,7 +769,7 @@ Button.displayName = "Button";
 **Files:**
 - Create: `intelligence-hub-app/src/components/ui/Badge.tsx`
 
-- [ ] **Step 1: Create Badge component**
+- [x] **Step 1: Create Badge component**
 
 ```tsx
 import { ReactNode } from "react";
@@ -811,7 +811,7 @@ export function Badge({ children, variant = "default", className = "" }: BadgePr
 **Files:**
 - Create: `intelligence-hub-app/src/components/ui/Modal.tsx`
 
-- [ ] **Step 1: Create Modal component**
+- [x] **Step 1: Create Modal component**
 
 ```tsx
 "use client";
@@ -879,7 +879,7 @@ export function Modal({ open, onClose, title, children, size = "md" }: ModalProp
 **Files:**
 - Create: `intelligence-hub-app/src/components/ui/StatusBanner.tsx`
 
-- [ ] **Step 1: Create StatusBanner component**
+- [x] **Step 1: Create StatusBanner component**
 
 ```tsx
 import { ProcessingRun } from "@/lib/types";
@@ -931,7 +931,7 @@ export function StatusBanner({ run }: StatusBannerProps) {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -948,7 +948,7 @@ git commit -m "feat: add reusable UI components — Button, Badge, Modal, Status
 **Files:**
 - Create: `intelligence-hub-app/src/hooks/useInstances.ts`
 
-- [ ] **Step 1: Create useInstances hook**
+- [x] **Step 1: Create useInstances hook**
 
 ```tsx
 "use client";
@@ -987,7 +987,7 @@ export function useInstances() {
 **Files:**
 - Create: `intelligence-hub-app/src/components/Sidebar.tsx`
 
-- [ ] **Step 1: Create Sidebar matching mockup**
+- [x] **Step 1: Create Sidebar matching mockup**
 
 ```tsx
 "use client";
@@ -1096,7 +1096,7 @@ export function Sidebar() {
 - Create: `intelligence-hub-app/src/app/page.tsx`
 - Create: `intelligence-hub-app/src/app/(app)/layout.tsx`
 
-- [ ] **Step 1: Update root layout**
+- [x] **Step 1: Update root layout**
 
 Replace `intelligence-hub-app/src/app/layout.tsx`:
 
@@ -1121,7 +1121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 2: Create root page redirect**
+- [x] **Step 2: Create root page redirect**
 
 ```tsx
 import { redirect } from "next/navigation";
@@ -1131,7 +1131,7 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 3: Create authenticated app layout with sidebar**
+- [x] **Step 3: Create authenticated app layout with sidebar**
 
 ```tsx
 "use client";
@@ -1170,7 +1170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -1187,7 +1187,7 @@ git commit -m "feat: add root layout, app layout with sidebar, and instances hoo
 **Files:**
 - Create: `intelligence-hub-app/src/app/(app)/dashboard/page.tsx`
 
-- [ ] **Step 1: Create dashboard with instance cards grid**
+- [x] **Step 1: Create dashboard with instance cards grid**
 
 ```tsx
 "use client";
@@ -1290,7 +1290,7 @@ export default function DashboardPage() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -1307,7 +1307,7 @@ git commit -m "feat: add dashboard page with instance cards grid"
 **Files:**
 - Create: `intelligence-hub-app/src/app/(app)/instances/new/page.tsx`
 
-- [ ] **Step 1: Create instance form page**
+- [x] **Step 1: Create instance form page**
 
 ```tsx
 "use client";
@@ -1402,7 +1402,7 @@ export default function NewInstancePage() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -1419,7 +1419,7 @@ git commit -m "feat: add create instance page with form"
 **Files:**
 - Create: `intelligence-hub-app/src/components/InstanceTopbar.tsx`
 
-- [ ] **Step 1: Create topbar matching mockup**
+- [x] **Step 1: Create topbar matching mockup**
 
 ```tsx
 "use client";
@@ -1478,7 +1478,7 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
 **Files:**
 - Create: `intelligence-hub-app/src/components/InstanceTabs.tsx`
 
-- [ ] **Step 1: Create tabs matching mockup**
+- [x] **Step 1: Create tabs matching mockup**
 
 ```tsx
 "use client";
@@ -1550,7 +1550,7 @@ export function InstanceTabs({ instanceId, counts }: InstanceTabsProps) {
 - Create: `intelligence-hub-app/src/app/(app)/instances/[id]/brand-voice/page.tsx`
 - Create: `intelligence-hub-app/src/app/(app)/instances/[id]/history/page.tsx`
 
-- [ ] **Step 1: Create instance layout**
+- [x] **Step 1: Create instance layout**
 
 ```tsx
 "use client";
@@ -1608,7 +1608,7 @@ export default function InstanceLayout({ children }: { children: React.ReactNode
 }
 ```
 
-- [ ] **Step 2: Create instance root page (redirect to content)**
+- [x] **Step 2: Create instance root page (redirect to content)**
 
 ```tsx
 import { redirect } from "next/navigation";
@@ -1618,7 +1618,7 @@ export default function InstancePage({ params }: { params: { id: string } }) {
 }
 ```
 
-- [ ] **Step 3: Create content placeholder page**
+- [x] **Step 3: Create content placeholder page**
 
 ```tsx
 export default function ContentPage() {
@@ -1630,7 +1630,7 @@ export default function ContentPage() {
 }
 ```
 
-- [ ] **Step 4: Create inputs placeholder page**
+- [x] **Step 4: Create inputs placeholder page**
 
 ```tsx
 export default function InputsPage() {
@@ -1642,7 +1642,7 @@ export default function InputsPage() {
 }
 ```
 
-- [ ] **Step 5: Create insights placeholder page**
+- [x] **Step 5: Create insights placeholder page**
 
 ```tsx
 export default function InsightsPage() {
@@ -1654,7 +1654,7 @@ export default function InsightsPage() {
 }
 ```
 
-- [ ] **Step 6: Create brand-voice placeholder page**
+- [x] **Step 6: Create brand-voice placeholder page**
 
 ```tsx
 export default function BrandVoicePage() {
@@ -1666,7 +1666,7 @@ export default function BrandVoicePage() {
 }
 ```
 
-- [ ] **Step 7: Create history placeholder page**
+- [x] **Step 7: Create history placeholder page**
 
 ```tsx
 export default function HistoryPage() {
@@ -1685,7 +1685,7 @@ export default function HistoryPage() {
 **Files:**
 - Create: `intelligence-hub-app/src/app/(app)/settings/page.tsx`
 
-- [ ] **Step 1: Create settings placeholder**
+- [x] **Step 1: Create settings placeholder**
 
 ```tsx
 export default function SettingsPage() {
@@ -1702,7 +1702,7 @@ export default function SettingsPage() {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
@@ -1716,20 +1716,20 @@ git commit -m "feat: add instance layout with topbar, tabs, and placeholder page
 
 ### Task 20: Verify the app builds
 
-- [ ] **Step 1: Run build**
+- [x] **Step 1: Run build**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub/intelligence-hub-app
 npm run build
 ```
 
-- [ ] **Step 2: Fix any TypeScript or build errors**
+- [x] **Step 2: Fix any TypeScript or build errors**
 
 Address any errors from the build output. Common fixes:
 - Import path issues: ensure `@/` alias is configured in `tsconfig.json` (`"paths": {"@/*": ["./src/*"]}`)
 - Missing `use client` directives on components using hooks or browser APIs
 
-- [ ] **Step 3: Final commit**
+- [x] **Step 3: Final commit**
 
 ```bash
 cd /c/Proyectos/Inteligence-hub
