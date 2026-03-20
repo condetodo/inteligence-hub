@@ -11,7 +11,7 @@ export function useInstances() {
   const fetchInstances = useCallback(async () => {
     try {
       const data = await api.get<{ instances: Instance[] }>("/instances");
-      setInstances(data.instances);
+      setInstances(data?.instances || []);
     } catch {
       setInstances([]);
     } finally {
