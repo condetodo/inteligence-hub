@@ -25,41 +25,52 @@ export interface Instance {
   };
 }
 
-export interface InputFile {
-  id: string;
-  instanceId: string;
-  type: "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW";
-  filename: string;
-  content: string;
-  status: "PENDING" | "PROCESSED";
-  uploadedAt: string;
-  processedAt: string | null;
-}
+// Content
+export type Platform = "LINKEDIN" | "X" | "TIKTOK" | "BLOG";
+export type ContentStatus = "DRAFT" | "REVIEW" | "APPROVED" | "PUBLISHED";
+export type ContentType = "POST" | "THREAD" | "SCRIPT" | "ARTICLE";
+export type Variant = "A" | "B" | "C";
 
 export interface ContentOutput {
   id: string;
   instanceId: string;
   weekNumber: number;
   year: number;
-  platform: "LINKEDIN" | "X" | "TIKTOK" | "BLOG";
-  type: "POST" | "THREAD" | "SCRIPT" | "ARTICLE";
+  platform: Platform;
+  type: ContentType;
   title: string;
   content: string;
   imageUrl: string | null;
   imagePrompt: string | null;
-  variant: "A" | "B" | "C";
-  status: "DRAFT" | "REVIEW" | "APPROVED" | "PUBLISHED";
+  variant: Variant;
+  status: ContentStatus;
   engagement: Record<string, number> | null;
   createdAt: string;
 }
 
+// Inputs
+export type InputType = "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW";
+export type InputStatus = "PENDING" | "PROCESSED";
+
+export interface InputFile {
+  id: string;
+  instanceId: string;
+  type: InputType;
+  filename: string;
+  content: string;
+  status: InputStatus;
+  uploadedAt: string;
+  processedAt: string | null;
+}
+
+// Insights
 export interface InsightReport {
   id: string;
   instanceId: string;
   weekNumber: number;
   year: number;
   executiveSummary: string;
-  topTopics: unknown[];
+  topTopics: { topic: string; evidence: string }[];
   opportunity: string;
   evolution: string;
   questions: string[];
@@ -67,17 +78,30 @@ export interface InsightReport {
   createdAt: string;
 }
 
+// Brand Voice
 export interface BrandVoice {
   id: string;
   instanceId: string;
   identity: string;
   valueProposition: string;
   audience: string;
-  voiceTone: Record<string, unknown>;
+  voiceTone: { adjectives: string[]; examples: string[]; antiPatterns: string[] };
   recurringTopics: string[];
   positioning: string;
   metrics: string;
+  insightHistory?: Record<string, unknown>;
   updatedAt: string;
+}
+
+// Processing
+export type RunStatus = "RUNNING" | "COMPLETED" | "FAILED";
+export type TriggerType = "CRON" | "MANUAL";
+
+export interface ProcessingStep {
+  name: string;
+  status: "pending" | "running" | "done" | "failed";
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface ProcessingRun {
@@ -85,11 +109,11 @@ export interface ProcessingRun {
   instanceId: string;
   weekNumber: number;
   year: number;
-  status: "RUNNING" | "COMPLETED" | "FAILED";
-  steps: Record<string, string>;
+  status: RunStatus;
+  steps: ProcessingStep[];
   startedAt: string;
   completedAt: string | null;
-  triggeredBy: "CRON" | "MANUAL";
+  triggeredBy: TriggerType;
 }
 
 export interface ApiError {

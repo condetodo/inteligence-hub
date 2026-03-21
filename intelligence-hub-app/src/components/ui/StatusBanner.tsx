@@ -4,14 +4,6 @@ interface StatusBannerProps {
   run: ProcessingRun | null;
 }
 
-const stepLabels: Record<string, string> = {
-  corpus: "Corpus",
-  brandVoice: "Brand Voice",
-  content: "Contenido",
-  insights: "Insights",
-  distribution: "Distribución",
-};
-
 export function StatusBanner({ run }: StatusBannerProps) {
   if (!run) return null;
 
@@ -31,14 +23,14 @@ export function StatusBanner({ run }: StatusBannerProps) {
             ? "Procesando..."
             : isFailed
               ? "Error en procesamiento"
-              : `Último procesamiento: ${new Date(run.completedAt || run.startedAt).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`}
+              : `Ultimo procesamiento: ${new Date(run.completedAt || run.startedAt).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`}
         </span>
       </div>
       <div className="flex gap-4 text-xs text-horse-gray-400">
-        {Object.entries(run.steps).map(([key, status]) => (
-          <span key={key} className={status === "completed" ? "text-status-approved font-medium" : ""}>
-            {status === "completed" ? "\u2713 " : ""}
-            {stepLabels[key] || key}
+        {run.steps.map((step) => (
+          <span key={step.name} className={step.status === "done" ? "text-status-approved font-medium" : ""}>
+            {step.status === "done" ? "\u2713 " : ""}
+            {step.name}
           </span>
         ))}
       </div>
