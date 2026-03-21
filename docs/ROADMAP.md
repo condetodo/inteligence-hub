@@ -32,22 +32,20 @@
 - **Deployed to Vercel:** Yes
 
 ### Plan 3B: Frontend Feature Pages
-- **Status:** PENDING (next up)
+- **Status:** COMPLETED (2026-03-20)
 - **Scope:** Kanban content board, inputs management, insights reports, brand voice editor, processing history
 - **Plan file:** `docs/superpowers/plans/2026-03-14-plan3b-frontend-features.md`
+- **Components:** PlatformBadge, StatusDot, WeekSelector, StatsBar, ProcessingBanner, PlatformFilter, ContentCard, KanbanColumn, KanbanBoard, ContentModal, InputList, UploadModal, InsightReport, BrandVoiceForm, ProcessingTimeline
+- **Deployed to Vercel:** Yes
+- **Env fix:** Configured NEXT_PUBLIC_API_URL on Vercel → Railway API
 
 ---
 
 ## What's Next
 
-1. **Plan 3B** — Build all feature pages inside instances:
-   - Kanban content board (drag & drop by status)
-   - Inputs page (upload files, list, process)
-   - Insights page (weekly reports)
-   - Brand Voice page (edit voice profile)
-   - History page (processing runs log)
+1. **Polish & QA** — Responsive design, better error handling (e.g. 409 on register), loading states
 
-2. **Polish & QA** — Responsive design, error handling, loading states
+2. **API integration** — Connect frontend components to real API endpoints (currently using mock data)
 
 3. **Custom domain** — Connect production domain
 
