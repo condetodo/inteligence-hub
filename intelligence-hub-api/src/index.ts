@@ -19,7 +19,15 @@ app.use(express.json({ limit: '10mb' }));
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    config: {
+      hasAnthropicKey: !!env.ANTHROPIC_API_KEY && env.ANTHROPIC_API_KEY.length > 5,
+      anthropicKeyPrefix: env.ANTHROPIC_API_KEY?.substring(0, 10) + '...',
+      hasGoogleKey: !!env.GOOGLE_AI_API_KEY && env.GOOGLE_AI_API_KEY.length > 5,
+    },
+  });
 });
 
 // Routes
