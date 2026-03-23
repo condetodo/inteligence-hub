@@ -1,6 +1,6 @@
 # Intelligence Hub — Roadmap
 
-> Last updated: 2026-03-20
+> Last updated: 2026-03-23
 
 ## Infrastructure
 
@@ -41,13 +41,22 @@
 
 ---
 
+### Polish & QA
+- **Status:** COMPLETED (2026-03-23)
+- **Scope:** Toast notifications, loading spinners, responsive sidebar (drawer), responsive grids (kanban/insights/tabs), mobile header
+- **Plan file:** `docs/plans/2026-03-23-polish-qa-design.md`
+
+### API Integration
+- **Status:** COMPLETED (2026-03-23)
+- **Scope:** Fix frontend-backend mismatches (role→clientRole, response wrappers, _count stats, steps object), fix /auth/me parsing
+- **Plan file:** `docs/plans/2026-03-23-api-integration-design.md`
+
+---
+
 ## What's Next
 
-1. **Polish & QA** — Responsive design, better error handling (e.g. 409 on register), loading states
-
-2. **API integration** — Connect frontend components to real API endpoints (currently using mock data)
-
-3. **Custom domain** — Connect production domain
+1. **Custom domain** — Connect production domain to Vercel
+2. **End-to-end testing** — Full platform testing with real data
 
 ---
 
