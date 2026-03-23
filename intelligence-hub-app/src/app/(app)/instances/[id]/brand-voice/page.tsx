@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { BrandVoice } from '@/lib/types';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { PageLoader } from '@/components/ui/Spinner';
 import BrandVoiceForm from '@/components/brand-voice/BrandVoiceForm';
 import { Mic } from 'lucide-react';
 
 export default function BrandVoicePage() {
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
   const [brandVoice, setBrandVoice] = useState<BrandVoice | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,17 +20,22 @@ export default function BrandVoicePage() {
       try {
         const res = await api.get<BrandVoice>(`/instances/${id}/brand-voice`);
         setBrandVoice(res);
-      } catch (err) {
-        console.error('Failed to fetch brand voice:', err);
+      } catch {
+        toast.error('Error al cargar brand voice');
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, toast]);
 
   const handleSave = async (data: Partial<BrandVoice>) => {
-    const res = await api.put<BrandVoice>(`/instances/${id}/brand-voice`, data);
-    setBrandVoice(res);
+    try {
+      const res = await api.put<BrandVoice>(`/instances/${id}/brand-voice`, data);
+      setBrandVoice(res);
+      toast.success('Brand voice guardado');
+    } catch {
+      toast.error('Error al guardar brand voice');
+    }
   };
 
   return (
@@ -38,7 +46,7 @@ export default function BrandVoicePage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-horse-gray-400 text-sm">Cargando brand voice...</div>
+        <PageLoader message="Cargando brand voice..." />
       ) : brandVoice ? (
         <BrandVoiceForm data={brandVoice} onSave={handleSave} />
       ) : (

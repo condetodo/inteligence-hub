@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Instance } from "@/lib/types";
 import { api } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 
 interface InstanceTopbarProps {
@@ -12,22 +13,24 @@ interface InstanceTopbarProps {
 
 export function InstanceTopbar({ instance }: InstanceTopbarProps) {
   const router = useRouter();
+  const toast = useToast();
   const [processing, setProcessing] = useState(false);
 
   const handleProcess = async () => {
     setProcessing(true);
     try {
       await api.post(`/instances/${instance.id}/process`);
+      toast.success("Procesamiento iniciado");
       router.refresh();
     } catch {
-      alert("Error al iniciar procesamiento");
+      toast.error("Error al iniciar procesamiento");
     } finally {
       setProcessing(false);
     }
   };
 
   return (
-    <div className="h-[68px] border-b border-horse-gray-200 flex items-center justify-between px-8 bg-white">
+    <div className="h-auto min-h-[68px] border-b border-horse-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-8 py-3 sm:py-0 gap-2 sm:gap-0 bg-white">
       <div className="flex items-center gap-4">
         <h1 className="text-lg font-semibold text-horse-black">{instance.clientName}</h1>
         <span className="text-[13px] text-horse-gray-400">

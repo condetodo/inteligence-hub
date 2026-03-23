@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { InputFile, InputType } from '@/lib/types';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { PageLoader } from '@/components/ui/Spinner';
 import InputList from '@/components/inputs/InputList';
 import UploadModal from '@/components/inputs/UploadModal';
 import { Upload } from 'lucide-react';
 
 export default function InputsPage() {
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
   const [inputs, setInputs] = useState<InputFile[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -19,23 +22,29 @@ export default function InputsPage() {
     try {
       const res = await api.get<InputFile[]>(`/instances/${id}/inputs`);
       setInputs(res);
-    } catch (err) {
-      console.error('Failed to fetch inputs:', err);
+    } catch {
+      toast.error('Error al cargar inputs');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, toast]);
 
   useEffect(() => { fetchInputs(); }, [fetchInputs]);
 
   const handleUpload = async (data: { content: string; type: InputType; filename: string }) => {
     await api.post(`/instances/${id}/inputs`, data);
+    toast.success('Input subido correctamente');
     await fetchInputs();
   };
 
   const handleDelete = async (inputId: string) => {
-    await api.delete(`/instances/${id}/inputs/${inputId}`);
-    setInputs((prev) => prev.filter((i) => i.id !== inputId));
+    try {
+      await api.delete(`/instances/${id}/inputs/${inputId}`);
+      setInputs((prev) => prev.filter((i) => i.id !== inputId));
+      toast.success('Input eliminado');
+    } catch {
+      toast.error('Error al eliminar input');
+    }
   };
 
   return (
@@ -55,7 +64,7 @@ export default function InputsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-horse-gray-400 text-sm">Cargando inputs...</div>
+        <PageLoader message="Cargando inputs..." />
       ) : (
         <InputList inputs={inputs} onDelete={handleDelete} />
       )}

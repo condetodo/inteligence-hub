@@ -15,7 +15,7 @@ interface Props {
 
 export default function KanbanBoard({ items, onApprove, onReject, onSelectVariant, onCardClick }: Props) {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {columns.map((status) => (
         <KanbanColumn
           key={status}

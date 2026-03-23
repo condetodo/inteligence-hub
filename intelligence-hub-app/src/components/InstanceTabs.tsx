@@ -23,7 +23,7 @@ export function InstanceTabs({ instanceId, counts }: InstanceTabsProps) {
   ];
 
   return (
-    <div className="flex gap-0 border-b border-horse-gray-200 px-8 bg-white">
+    <div className="flex gap-0 border-b border-horse-gray-200 px-4 md:px-8 bg-white overflow-x-auto">
       {tabs.map((tab) => {
         const active = pathname === tab.href;
         return (

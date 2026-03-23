@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ProcessingRun } from '@/lib/types';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { PageLoader } from '@/components/ui/Spinner';
 import ProcessingTimeline from '@/components/history/ProcessingTimeline';
 
 export default function HistoryPage() {
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
   const [runs, setRuns] = useState<ProcessingRun[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,13 +19,13 @@ export default function HistoryPage() {
       try {
         const res = await api.get<ProcessingRun[]>(`/instances/${id}/runs`);
         setRuns(res);
-      } catch (err) {
-        console.error('Failed to fetch runs:', err);
+      } catch {
+        toast.error('Error al cargar historial');
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, toast]);
 
   return (
     <div>
@@ -32,7 +35,7 @@ export default function HistoryPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-horse-gray-400 text-sm">Cargando historial...</div>
+        <PageLoader message="Cargando historial..." />
       ) : (
         <ProcessingTimeline runs={runs} />
       )}

@@ -13,7 +13,12 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { instances } = useInstances();
 
@@ -22,7 +27,11 @@ export function Sidebar() {
     { href: "/settings", label: "Configuración", icon: "\u2699" },
   ];
 
-  return (
+  const handleNavClick = () => {
+    onClose?.();
+  };
+
+  const sidebarContent = (
     <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-white border-r border-horse-gray-200 flex flex-col z-40">
       <div className="px-6 py-5 pb-4 border-b border-horse-gray-200 flex items-center gap-2.5">
         <div className="w-8 h-8 bg-horse-black rounded-md flex items-center justify-center text-white text-sm font-bold">
@@ -42,6 +51,7 @@ export function Sidebar() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={handleNavClick}
             className={`flex items-center gap-2.5 px-6 py-2.5 text-sm transition-colors ${
               active
                 ? "bg-horse-gray-100 text-horse-black font-medium border-l-[3px] border-horse-black"
@@ -64,6 +74,7 @@ export function Sidebar() {
             <Link
               key={instance.id}
               href={`/instances/${instance.id}/content`}
+              onClick={handleNavClick}
               className={`flex items-center gap-2.5 px-6 py-2.5 text-[13px] transition-colors ${
                 active
                   ? "bg-horse-gray-100 text-horse-black"
@@ -86,10 +97,26 @@ export function Sidebar() {
 
       <Link
         href="/instances/new"
+        onClick={handleNavClick}
         className="mx-4 mb-4 py-2.5 border-[1.5px] border-dashed border-horse-gray-300 rounded-lg text-center text-horse-gray-400 text-[13px] font-medium hover:border-horse-black hover:text-horse-black transition-colors"
       >
         + Nueva instancia
       </Link>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop: always visible */}
+      <div className="hidden md:block">{sidebarContent}</div>
+
+      {/* Mobile: drawer overlay */}
+      {open && (
+        <div className="md:hidden">
+          <div className="fixed inset-0 bg-black/40 z-30" onClick={onClose} />
+          {sidebarContent}
+        </div>
+      )}
+    </>
   );
 }

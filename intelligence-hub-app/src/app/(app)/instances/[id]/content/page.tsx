@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import { ContentOutput, ContentStatus, Platform, Variant, ProcessingRun } from '@/lib/types';
 import { getCurrentWeek } from '@/lib/weeks';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { PageLoader } from '@/components/ui/Spinner';
 import WeekSelector from '@/components/ui/WeekSelector';
 import PlatformFilter from '@/components/content/PlatformFilter';
 import StatsBar from '@/components/content/StatsBar';
@@ -14,6 +16,7 @@ import ContentModal from '@/components/content/ContentModal';
 
 export default function ContentPage() {
   const { id } = useParams<{ id: string }>();
+  const toast = useToast();
   const [week, setWeek] = useState(getCurrentWeek);
   const [platform, setPlatform] = useState<Platform | 'ALL'>('ALL');
   const [items, setItems] = useState<ContentOutput[]>([]);
@@ -36,12 +39,12 @@ export default function ContentPage() {
       ]);
       setItems(contentRes);
       setLatestRun(runsRes[0] || null);
-    } catch (err) {
-      console.error('Failed to fetch content:', err);
+    } catch {
+      toast.error('Error al cargar contenido');
     } finally {
       setLoading(false);
     }
-  }, [id, week, platform]);
+  }, [id, week, platform, toast]);
 
   useEffect(() => { fetchContent(); }, [fetchContent]);
 
@@ -49,8 +52,8 @@ export default function ContentPage() {
     try {
       await api.patch(`/instances/${id}/content/${contentId}`, { status: newStatus });
       setItems((prev) => prev.map((i) => i.id === contentId ? { ...i, status: newStatus } : i));
-    } catch (err) {
-      console.error('Failed to update status:', err);
+    } catch {
+      toast.error('Error al actualizar estado');
     }
   };
 
@@ -70,13 +73,13 @@ export default function ContentPage() {
       <ProcessingBanner run={latestRun} contentCount={items.length} />
       <StatsBar counts={counts} />
 
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
         <WeekSelector year={week.year} weekNumber={week.weekNumber} onChange={(y, w) => setWeek({ year: y, weekNumber: w })} />
         <PlatformFilter selected={platform} onChange={setPlatform} />
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-horse-gray-400 text-sm">Cargando contenido...</div>
+        <PageLoader message="Cargando contenido..." />
       ) : (
         <KanbanBoard
           items={items}

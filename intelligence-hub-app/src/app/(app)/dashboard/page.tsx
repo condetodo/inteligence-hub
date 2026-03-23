@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useInstances } from "@/hooks/useInstances";
 import { Badge } from "@/components/ui/Badge";
+import { PageLoader } from "@/components/ui/Spinner";
 
 function getInitials(name: string): string {
   return name
@@ -18,7 +19,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="h-[68px] border-b border-horse-gray-200 flex items-center justify-between px-8 bg-white">
+      <div className="h-auto min-h-[68px] border-b border-horse-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-8 py-3 sm:py-0 gap-2 sm:gap-0 bg-white">
         <h1 className="text-lg font-semibold text-horse-black">Dashboard</h1>
         <Link
           href="/instances/new"
@@ -28,9 +29,9 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         {loading ? (
-          <div className="text-horse-gray-400 text-sm">Cargando instancias...</div>
+          <PageLoader message="Cargando instancias..." />
         ) : instances.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-horse-gray-400 text-sm mb-4">No hay instancias creadas todavía.</p>

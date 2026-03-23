@@ -27,7 +27,7 @@ export default function InsightReport({ report }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
           <h3 className="text-sm font-semibold text-horse-black mb-3 flex items-center gap-2">
             <Lightbulb size={16} className="text-status-draft" /> Oportunidad Destacada
