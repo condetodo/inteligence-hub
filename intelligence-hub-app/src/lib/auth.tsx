@@ -20,8 +20,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     try {
-      const data = await api.get<{ user: User }>("/auth/me");
-      setUser(data.user);
+      const data = await api.get<User>("/auth/me");
+      setUser(data);
     } catch {
       setUser(null);
     } finally {
