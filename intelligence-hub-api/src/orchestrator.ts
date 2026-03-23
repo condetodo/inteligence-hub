@@ -96,15 +96,14 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('[Orchestrator] Fatal error:', errorMsg);
 
+    const currentRun = await prisma.processingRun.findUnique({ where: { id: runId } });
+    const currentSteps = (currentRun?.steps as Record<string, string>) ?? {};
     await prisma.processingRun.update({
       where: { id: runId },
       data: {
         status: 'FAILED',
         completedAt: new Date(),
-        steps: {
-          ...(await prisma.processingRun.findUnique({ where: { id: runId } }).then(r => (r?.steps as Record<string, string>) ?? {})),
-          error: errorMsg,
-        },
+        steps: { ...currentSteps, error: errorMsg },
       },
     });
 
