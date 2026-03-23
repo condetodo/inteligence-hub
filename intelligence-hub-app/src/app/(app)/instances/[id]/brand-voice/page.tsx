@@ -20,8 +20,9 @@ export default function BrandVoicePage() {
       try {
         const res = await api.get<BrandVoice>(`/instances/${id}/brand-voice`);
         setBrandVoice(res);
-      } catch {
-        toast.error('Error al cargar brand voice');
+      } catch (err: unknown) {
+        const error = err as { status?: number };
+        if (error?.status !== 404) toast.error('Error al cargar brand voice');
       } finally {
         setLoading(false);
       }

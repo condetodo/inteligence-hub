@@ -22,8 +22,10 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
       await api.post(`/instances/${instance.id}/process`);
       toast.success("Procesamiento iniciado");
       router.refresh();
-    } catch {
-      toast.error("Error al iniciar procesamiento");
+    } catch (err: unknown) {
+      const error = err as { message?: string; body?: { error?: string } };
+      const msg = error?.body?.error || error?.message || "Error desconocido";
+      toast.error(`Error al procesar: ${msg}`);
     } finally {
       setProcessing(false);
     }
