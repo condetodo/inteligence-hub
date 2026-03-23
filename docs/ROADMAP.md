@@ -51,12 +51,35 @@
 - **Scope:** Fix frontend-backend mismatches (role→clientRole, response wrappers, _count stats, steps object), fix /auth/me parsing
 - **Plan file:** `docs/plans/2026-03-23-api-integration-design.md`
 
+### Production Bugfixes (2026-03-23)
+- **Status:** COMPLETED
+- **Scope:**
+  - Fix toast infinite loop (stabilize ToastProvider context with `useMemo`)
+  - Fix Brand Voice page crash (defensive defaults for empty `voiceTone` object)
+  - Fix Anthropic API key authentication (updated key in Railway env vars)
+  - Fix Brand Voice agent not generating text fields (identity, valueProposition, audience, positioning, metrics)
+  - Fix orchestrator skipping agents when no new inputs (now reuses existing weekly corpus)
+  - Configure Vercel "Skip deployments" for backend-only commits
+
+### End-to-End Testing (2026-03-23)
+- **Status:** COMPLETED
+- **Scope:** Full pipeline tested with real data:
+  - ✅ Auth (login/register)
+  - ✅ Instance CRUD
+  - ✅ Input upload (text — Entrevista, Nota)
+  - ✅ Processing pipeline (Corpus → Brand Voice → Content + Insights → Distribution)
+  - ✅ Insights display (weekly report with executive summary, themes, opportunities)
+  - ✅ Brand Voice auto-generation (all fields populated by AI agent)
+  - ✅ Content generation (drafts created per platform)
+
 ---
 
 ## What's Next
 
-1. **Custom domain** — Connect production domain to Vercel
-2. **End-to-end testing** — Full platform testing with real data
+1. **Audio input upload** — Upload audio files (.mp3/.m4a) with automatic transcription via Whisper API, eliminating manual transcription friction
+2. **Custom domain** — Connect production domain to Vercel
+3. **Processing status feedback** — Show real-time progress while agents are running (polling or SSE)
+4. **Error handling polish** — Better user feedback for 409 (already processing), timeouts, etc.
 
 ---
 
