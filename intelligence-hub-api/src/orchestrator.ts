@@ -38,16 +38,26 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     // Step 1: Corpus Builder (sequential)
     await updateStep(runId, 'corpus', 'running');
     console.log('\n--- Step 1: Corpus Builder ---');
-    const corpus = await runCorpusBuilder(instanceId, weekNumber, year);
-    await updateStep(runId, 'corpus', corpus ? 'completed' : 'skipped');
+    const newCorpus = await runCorpusBuilder(instanceId, weekNumber, year);
 
-    if (!corpus) {
-      console.log('[Orchestrator] No corpus generated (no pending inputs). Completing run.');
+    // Check if a corpus already exists for this week (even if no new inputs)
+    const existingCorpus = !newCorpus ? await prisma.weeklyCorpus.findUnique({
+      where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
+    }) : newCorpus;
+
+    await updateStep(runId, 'corpus', newCorpus ? 'completed' : existingCorpus ? 'reused' : 'skipped');
+
+    if (!existingCorpus) {
+      console.log('[Orchestrator] No corpus available (no inputs at all). Completing run.');
       await prisma.processingRun.update({
         where: { id: runId },
         data: { status: 'COMPLETED', completedAt: new Date() },
       });
       return;
+    }
+
+    if (!newCorpus) {
+      console.log('[Orchestrator] No new inputs, but existing corpus found. Continuing with agents...');
     }
 
     // Step 2: Brand Voice (sequential, depends on corpus)
