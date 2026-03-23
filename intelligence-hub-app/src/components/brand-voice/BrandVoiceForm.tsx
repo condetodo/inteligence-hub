@@ -11,13 +11,17 @@ interface Props {
 
 export default function BrandVoiceForm({ data, onSave }: Props) {
   const [form, setForm] = useState({
-    identity: data.identity,
-    valueProposition: data.valueProposition,
-    audience: data.audience,
-    voiceTone: data.voiceTone,
-    recurringTopics: data.recurringTopics,
-    positioning: data.positioning,
-    metrics: data.metrics,
+    identity: data.identity || '',
+    valueProposition: data.valueProposition || '',
+    audience: data.audience || '',
+    voiceTone: {
+      adjectives: data.voiceTone?.adjectives || [],
+      examples: data.voiceTone?.examples || [],
+      antiPatterns: data.voiceTone?.antiPatterns || [],
+    },
+    recurringTopics: data.recurringTopics || [],
+    positioning: data.positioning || '',
+    metrics: data.metrics || '',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
