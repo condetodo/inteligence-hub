@@ -22,8 +22,13 @@ REGLAS:
 FORMATO DE RESPUESTA (JSON estricto):
 {
   "updatedFields": {
+    "identity": "descripcion de quien es la persona/marca (si esta vacio o se puede mejorar)",
+    "valueProposition": "propuesta de valor unica (si esta vacio o se puede mejorar)",
+    "audience": "audiencia target (si esta vacio o se puede mejorar)",
+    "positioning": "posicionamiento en el mercado (si esta vacio o se puede mejorar)",
+    "metrics": "metricas clave o KPIs relevantes (si esta vacio o se puede mejorar)",
     "recurringTopics": ["lista actualizada de temas recurrentes si hay cambios"],
-    "voiceTone": { "adjectives": ["lista actualizada si hay cambios"] }
+    "voiceTone": { "adjectives": ["lista actualizada si hay cambios"], "examples": ["ejemplos de frases tipicas"], "antiPatterns": ["cosas que NO diria"] }
   },
   "weeklyInsight": {
     "summary": "resumen del insight de esta semana",
@@ -31,7 +36,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     "recommendations": "recomendacion para la semana siguiente"
   },
   "significantChanges": true | false
-}`;
+}
+
+IMPORTANTE: Si los campos identity, valueProposition, audience, positioning o metrics estan vacios, DEBES generarlos basandote en el corpus disponible.`;
 
 export async function runBrandVoiceAgent(instanceId: string, weekNumber: number, year: number) {
   console.log(`[BrandVoice] Updating brand voice for instance ${instanceId}`);
@@ -85,12 +92,13 @@ Analiza si hay cambios significativos en la voz de marca y genera el insight sem
   const updateData: any = {};
   const updatedFields = result.updatedFields as any;
 
-  if (updatedFields?.recurringTopics) {
-    updateData.recurringTopics = updatedFields.recurringTopics;
-  }
-  if (updatedFields?.voiceTone) {
-    updateData.voiceTone = updatedFields.voiceTone;
-  }
+  if (updatedFields?.identity) updateData.identity = updatedFields.identity;
+  if (updatedFields?.valueProposition) updateData.valueProposition = updatedFields.valueProposition;
+  if (updatedFields?.audience) updateData.audience = updatedFields.audience;
+  if (updatedFields?.positioning) updateData.positioning = updatedFields.positioning;
+  if (updatedFields?.metrics) updateData.metrics = updatedFields.metrics;
+  if (updatedFields?.recurringTopics) updateData.recurringTopics = updatedFields.recurringTopics;
+  if (updatedFields?.voiceTone) updateData.voiceTone = updatedFields.voiceTone;
 
   // Add weekly insight to history
   const currentHistory = (brandVoice.insightHistory as any[]) || [];
