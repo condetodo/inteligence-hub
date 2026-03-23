@@ -9,7 +9,7 @@ export interface Instance {
   id: string;
   name: string;
   clientName: string;
-  role: string;
+  clientRole: string;
   company: string;
   industry: string;
   status: "ACTIVE" | "PAUSED" | "ARCHIVED";
@@ -17,11 +17,6 @@ export interface Instance {
   _count?: {
     inputs: number;
     content: number;
-  };
-  stats?: {
-    pendingInputs: number;
-    contentCount: number;
-    lastProcessedAt: string | null;
   };
 }
 
@@ -97,12 +92,7 @@ export interface BrandVoice {
 export type RunStatus = "RUNNING" | "COMPLETED" | "FAILED";
 export type TriggerType = "CRON" | "MANUAL";
 
-export interface ProcessingStep {
-  name: string;
-  status: "pending" | "running" | "done" | "failed";
-  startedAt?: string;
-  completedAt?: string;
-}
+export type StepStatus = "pending" | "running" | "done" | "failed";
 
 export interface ProcessingRun {
   id: string;
@@ -110,7 +100,7 @@ export interface ProcessingRun {
   weekNumber: number;
   year: number;
   status: RunStatus;
-  steps: ProcessingStep[];
+  steps: Record<string, StepStatus>;
   startedAt: string;
   completedAt: string | null;
   triggeredBy: TriggerType;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Instance } from "@/lib/types";
+import { PageLoader } from "@/components/ui/Spinner";
 import { InstanceTopbar } from "@/components/InstanceTopbar";
 import { InstanceTabs } from "@/components/InstanceTabs";
 
@@ -15,17 +16,15 @@ export default function InstanceLayout({ children }: { children: React.ReactNode
 
   useEffect(() => {
     api
-      .get<{ instance: Instance }>(`/instances/${id}`)
-      .then((data) => setInstance(data.instance))
+      .get<Instance>(`/instances/${id}`)
+      .then((data) => setInstance(data))
       .catch(() => setInstance(null))
       .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <span className="text-horse-gray-400 text-sm">Cargando...</span>
-      </div>
+      <PageLoader />
     );
   }
 

@@ -13,6 +13,14 @@ const statusConfig: Record<string, { icon: typeof Clock; color: string; label: s
   FAILED: { icon: XCircle, color: 'text-red-500', label: 'Error' },
 };
 
+const stepLabels: Record<string, string> = {
+  corpus: 'Corpus',
+  brandVoice: 'Brand Voice',
+  content: 'Contenido',
+  insights: 'Insights',
+  distribution: 'Distribución',
+};
+
 export default function ProcessingTimeline({ runs }: Props) {
   if (runs.length === 0) {
     return (
@@ -28,6 +36,7 @@ export default function ProcessingTimeline({ runs }: Props) {
       {runs.map((run) => {
         const cfg = statusConfig[run.status];
         const Icon = cfg.icon;
+        const stepEntries = Object.entries(run.steps || {});
         return (
           <div key={run.id} className="bg-white border border-horse-gray-200 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
@@ -52,15 +61,15 @@ export default function ProcessingTimeline({ runs }: Props) {
             </div>
 
             <div className="flex gap-2">
-              {run.steps.map((step, i) => (
-                <div key={i} className="flex-1">
+              {stepEntries.map(([name, status]) => (
+                <div key={name} className="flex-1">
                   <div className={`h-1.5 rounded-full mb-1.5 ${
-                    step.status === 'done' ? 'bg-status-approved'
-                    : step.status === 'running' ? 'bg-status-review animate-pulse'
-                    : step.status === 'failed' ? 'bg-red-400'
+                    status === 'done' ? 'bg-status-approved'
+                    : status === 'running' ? 'bg-status-review animate-pulse'
+                    : status === 'failed' ? 'bg-red-400'
                     : 'bg-horse-gray-200'
                   }`} />
-                  <div className="text-[10px] text-horse-gray-400 font-medium">{step.name}</div>
+                  <div className="text-[10px] text-horse-gray-400 font-medium">{stepLabels[name] || name}</div>
                 </div>
               ))}
             </div>

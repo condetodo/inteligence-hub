@@ -22,9 +22,9 @@ export default function ProcessingBanner({ run, contentCount }: Props) {
         </span>
       </div>
       <div className="flex gap-4 text-xs text-horse-gray-400">
-        {run.steps.map((step) => (
-          <span key={step.name} className={step.status === 'done' ? 'text-status-approved font-medium' : step.status === 'running' ? 'text-status-review font-medium' : step.status === 'failed' ? 'text-red-500 font-medium' : ''}>
-            {step.status === 'done' ? '✓' : step.status === 'running' ? '◌' : step.status === 'failed' ? '✕' : '○'} {step.name}
+        {Object.entries(run.steps || {}).map(([name, status]) => (
+          <span key={name} className={status === 'done' ? 'text-status-approved font-medium' : status === 'running' ? 'text-status-review font-medium' : status === 'failed' ? 'text-red-500 font-medium' : ''}>
+            {status === 'done' ? '✓' : status === 'running' ? '◌' : status === 'failed' ? '✕' : '○'} {name}
           </span>
         ))}
       </div>

@@ -10,8 +10,8 @@ export function useInstances() {
 
   const fetchInstances = useCallback(async () => {
     try {
-      const data = await api.get<{ instances: Instance[] }>("/instances");
-      setInstances(data?.instances || []);
+      const data = await api.get<Instance[]>("/instances");
+      setInstances(data || []);
     } catch {
       setInstances([]);
     } finally {

@@ -87,7 +87,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <div className="flex flex-col">
                 <span className="font-medium text-horse-black text-[13px]">{instance.clientName}</span>
                 <span className="text-[11px] text-horse-gray-400 mt-px">
-                  {instance.role} · {instance.company}
+                  {instance.clientRole} · {instance.company}
                 </span>
               </div>
             </Link>

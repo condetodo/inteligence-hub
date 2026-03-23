@@ -59,7 +59,7 @@ export default function DashboardPage() {
                       {instance.clientName}
                     </h3>
                     <p className="text-xs text-horse-gray-400 mt-0.5">
-                      {instance.role} · {instance.company}
+                      {instance.clientRole} · {instance.company}
                     </p>
                   </div>
                   <Badge variant={instance.status === "ACTIVE" ? "approved" : "default"} className="ml-auto">
@@ -67,26 +67,18 @@ export default function DashboardPage() {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-2 gap-3 text-center">
                   <div className="bg-horse-gray-100 rounded-lg py-2">
                     <div className="text-lg font-bold text-status-draft">
-                      {instance.stats?.pendingInputs ?? 0}
+                      {instance._count?.inputs ?? 0}
                     </div>
-                    <div className="text-[10px] text-horse-gray-400 font-medium">Inputs pendientes</div>
+                    <div className="text-[10px] text-horse-gray-400 font-medium">Inputs</div>
                   </div>
                   <div className="bg-horse-gray-100 rounded-lg py-2">
                     <div className="text-lg font-bold text-horse-black">
-                      {instance.stats?.contentCount ?? 0}
+                      {instance._count?.content ?? 0}
                     </div>
                     <div className="text-[10px] text-horse-gray-400 font-medium">Contenidos</div>
-                  </div>
-                  <div className="bg-horse-gray-100 rounded-lg py-2">
-                    <div className="text-[11px] font-medium text-horse-gray-500 mt-1">
-                      {instance.stats?.lastProcessedAt
-                        ? new Date(instance.stats.lastProcessedAt).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
-                        : "—"}
-                    </div>
-                    <div className="text-[10px] text-horse-gray-400 font-medium">Último proceso</div>
                   </div>
                 </div>
               </Link>

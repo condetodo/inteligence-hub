@@ -13,7 +13,7 @@ export default function NewInstancePage() {
   const [form, setForm] = useState({
     name: "",
     clientName: "",
-    role: "",
+    clientRole: "",
     company: "",
     industry: "",
   });
@@ -27,8 +27,8 @@ export default function NewInstancePage() {
     setError("");
     setLoading(true);
     try {
-      const data = await api.post<{ instance: Instance }>("/instances", form);
-      router.push(`/instances/${data.instance.id}/content`);
+      const data = await api.post<Instance>("/instances", form);
+      router.push(`/instances/${data.id}/content`);
     } catch (err: unknown) {
       const message = err && typeof err === "object" && "message" in err ? (err as { message: string }).message : "Error al crear instancia";
       setError(message);
@@ -40,7 +40,7 @@ export default function NewInstancePage() {
   const fields = [
     { key: "name", label: "Nombre de la instancia", placeholder: "Ej: Martín LinkedIn Q1" },
     { key: "clientName", label: "Nombre del cliente", placeholder: "Ej: Martín Rodríguez" },
-    { key: "role", label: "Cargo / Rol", placeholder: "Ej: CEO" },
+    { key: "clientRole", label: "Cargo / Rol", placeholder: "Ej: CEO" },
     { key: "company", label: "Empresa", placeholder: "Ej: AutomatizaPYME" },
     { key: "industry", label: "Industria", placeholder: "Ej: Tecnología / Automatización" },
   ];

@@ -27,10 +27,10 @@ export function StatusBanner({ run }: StatusBannerProps) {
         </span>
       </div>
       <div className="flex gap-4 text-xs text-horse-gray-400">
-        {run.steps.map((step) => (
-          <span key={step.name} className={step.status === "done" ? "text-status-approved font-medium" : ""}>
-            {step.status === "done" ? "\u2713 " : ""}
-            {step.name}
+        {Object.entries(run.steps || {}).map(([name, status]) => (
+          <span key={name} className={status === "done" ? "text-status-approved font-medium" : ""}>
+            {status === "done" ? "\u2713 " : ""}
+            {name}
           </span>
         ))}
       </div>
