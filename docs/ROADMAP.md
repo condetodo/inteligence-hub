@@ -85,21 +85,42 @@
 
 ---
 
+### Digital Twin / Knowledge Base — Phase 1 (2026-03-26)
+- **Status:** COMPLETED (backend) — Frontend UI expansion pending
+- **Design doc:** `docs/plans/2026-03-26-digital-twin-kb-design.md`
+- **Plan file:** `docs/plans/2026-03-26-digital-twin-kb-plan.md`
+- **What was implemented:**
+  - ✅ Fixed Opus model ID (was pointing to Sonnet)
+  - ✅ Expanded BrandVoice schema → KB with topics, contacts, narratives, lockedFields
+  - ✅ Added Instance config: processingPeriod (WEEKLY/MONTHLY), activeWindow (default 8)
+  - ✅ Created Distillation Agent (Opus) — replaces old BrandVoice agent, respects locked fields
+  - ✅ Corpus Builder now filters inputs by period date range (not all inputs forever)
+  - ✅ Orchestrator pipeline: corpus → distillation → content+insights → distribution
+  - ✅ Content + Insights agents now receive full KB (profile base + active memory of last N periods)
+  - ✅ Frontend step labels updated (Destilación replaces Brand Voice, backward compat kept)
+  - ✅ Frontend types updated for new KB fields
+  - ✅ Production DB migrated (prisma db push)
+- **What's still pending (frontend UI):**
+  - Brand Voice page expansion: show topics with positions, contacts, narratives
+  - Lock/unlock icons on editable fields
+  - Instance settings: period selector (weekly/monthly) + active window config
+- **Needs testing:**
+  - Run a full processing cycle to verify distillation works end-to-end
+  - Verify Opus model generates quality distillation output
+  - Check that locked fields are respected during processing
+
+---
+
 ## What's Next
 
-### Digital Twin / Knowledge Base (CORE FEATURE)
-- **Status:** DESIGNED — Ready to implement
-- **Design doc:** `docs/plans/2026-03-26-digital-twin-kb-design.md`
-- **Phase 1 — Knowledge Base Core:**
-  - Expand BrandVoice into full KB (profile base + active memory + config)
-  - New Distillation Agent (Opus) — updates profile base respecting locked fields
-  - Configurable processing period per instance (weekly/monthly)
-  - Sliding window active memory (last N periods, default 8)
-  - Migrate Content + Insights agents to Opus, feed full KB context
-  - Filter inputs by period (uploadedAt within current week/month)
-  - Locked fields mechanism — team can lock fields from auto-update
-  - Expand Brand Voice UI with topics+positions, contacts, narratives, lock icons
-- **Phase 2 — Team Operations Report:**
+### Digital Twin — Phase 1 Remaining (Frontend UI)
+- **Status:** PENDING
+- **Scope:** Expand Brand Voice page to show new KB fields (topics+positions, contacts, narratives), add lock icons, add instance period config in settings
+
+### Digital Twin — Phase 2: Team Operations Report
+- **Status:** DESIGNED — Not yet implemented
+- **Design doc:** `docs/plans/2026-03-26-digital-twin-kb-design.md` (Phase 2 section)
+- **Scope:**
   - New agent generates operational report for communication team
   - Detects: position changes, new/cooling topics, new contacts, tone shifts, contradictions, opportunities
   - Editable report prompt per instance (team customizes focus)
