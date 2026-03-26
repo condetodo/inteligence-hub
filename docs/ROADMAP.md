@@ -1,6 +1,6 @@
 # Intelligence Hub — Roadmap
 
-> Last updated: 2026-03-23
+> Last updated: 2026-03-26
 
 ## Infrastructure
 
@@ -74,12 +74,24 @@
 
 ---
 
+### Processing Status Feedback (2026-03-26)
+- **Status:** COMPLETED
+- **Scope:** Real-time processing status with adaptive polling
+  - Dashboard: RunStatusBadge on each instance card (RUNNING/COMPLETED/FAILED)
+  - History: Expandable vertical stepper timeline per run (step-by-step progress)
+  - Adaptive polling: 3-5s when running, 10-30s idle, auto-stop after 60s
+- **Design doc:** `intelligence-hub-app/docs/plans/2026-03-26-processing-status-design.md`
+- **Plan file:** `intelligence-hub-app/docs/plans/2026-03-26-processing-status-plan.md`
+
+---
+
 ## What's Next
 
-1. **Audio input upload** — Upload audio files (.mp3/.m4a) with automatic transcription via Whisper API, eliminating manual transcription friction
-2. **Custom domain** — Connect production domain to Vercel
-3. **Processing status feedback** — Show real-time progress while agents are running (polling or SSE)
-4. **Error handling polish** — Better user feedback for 409 (already processing), timeouts, etc.
+1. **Drag & Drop file upload** — Support real file uploads (.txt, .pdf, .docx, WhatsApp .zip exports) with multer + storage, replacing the current text-paste-only approach
+2. **Bulk input upload** — Upload multiple inputs at once via drag & drop or multi-file selector
+3. **Audio input upload** — Upload audio files (.mp3/.m4a) with automatic transcription via Whisper API
+4. **Custom domain** — Connect production domain to Vercel
+5. **Error handling polish** — Better user feedback for 409 (already processing), timeouts, etc.
 
 ---
 
