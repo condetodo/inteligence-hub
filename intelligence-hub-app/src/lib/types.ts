@@ -92,7 +92,7 @@ export interface BrandVoice {
 export type RunStatus = "RUNNING" | "COMPLETED" | "FAILED";
 export type TriggerType = "CRON" | "MANUAL";
 
-export type StepStatus = "pending" | "running" | "done" | "failed";
+export type StepStatus = "pending" | "running" | "done" | "failed" | "reused" | "skipped";
 
 export interface ProcessingRun {
   id: string;
