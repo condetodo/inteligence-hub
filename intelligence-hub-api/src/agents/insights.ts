@@ -43,15 +43,26 @@ export async function runInsightsAgent(instanceId: string, weekNumber: number, y
     return null;
   }
 
-  const userPrompt = `VOZ DE MARCA:
+  // Get active memory (last N periods)
+  const instance = await prisma.instance.findUnique({ where: { id: instanceId } });
+  const activeWindow = (instance as any)?.activeWindow ?? 8;
+  const recentCorpuses = await prisma.weeklyCorpus.findMany({
+    where: { instanceId },
+    orderBy: { createdAt: 'desc' },
+    take: activeWindow,
+  });
+
+  const userPrompt = `PERFIL BASE (DIGITAL TWIN):
 ${JSON.stringify({
     identity: brandVoice.identity,
     positioning: brandVoice.positioning,
     recurringTopics: brandVoice.recurringTopics,
+    topics: (brandVoice as any).topics || [],
+    narratives: (brandVoice as any).narratives || [],
     insightHistory: (brandVoice.insightHistory as any[])?.slice(-4) ?? [],
   }, null, 2)}
 
-CORPUS SEMANAL:
+CORPUS ACTUAL:
 ${JSON.stringify({
     summary: corpus.summary,
     topics: corpus.topics,
@@ -60,7 +71,13 @@ ${JSON.stringify({
     opportunities: corpus.opportunities,
   }, null, 2)}
 
-Genera el reporte de inteligencia semanal. Se profundo y accionable.`;
+MEMORIA ACTIVA (ultimos ${recentCorpuses.length} periodos):
+${JSON.stringify(recentCorpuses.map((c) => ({
+    period: c.weekNumber, year: c.year,
+    summary: c.summary, topics: c.topics,
+  })), null, 2)}
+
+Genera el reporte de inteligencia. Usa la memoria activa para detectar tendencias y cambios.`;
 
   const result = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt);
 

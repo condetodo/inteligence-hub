@@ -8,16 +8,25 @@ import { generateImage, buildImagePrompt } from '../lib/nanoBanana';
 export async function runContentAgent(instanceId: string, weekNumber: number, year: number) {
   console.log(`[ContentAgent] Generating content for instance ${instanceId}, week ${weekNumber}/${year}`);
 
-  // Get brand voice and corpus
+  // Get full KB (brand voice / profile base)
   const brandVoice = await prisma.brandVoice.findUnique({ where: { instanceId } });
   const corpus = await prisma.weeklyCorpus.findUnique({
     where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
   });
 
   if (!brandVoice || !corpus) {
-    console.log('[ContentAgent] Missing brand voice or corpus, skipping');
+    console.log('[ContentAgent] Missing KB or corpus, skipping');
     return [];
   }
+
+  // Get active memory (last N periods)
+  const instance = await prisma.instance.findUnique({ where: { id: instanceId } });
+  const activeWindow = (instance as any)?.activeWindow ?? 8;
+  const recentCorpuses = await prisma.weeklyCorpus.findMany({
+    where: { instanceId },
+    orderBy: { createdAt: 'desc' },
+    take: activeWindow,
+  });
 
   const brandVoiceData = {
     identity: brandVoice.identity,
@@ -26,14 +35,25 @@ export async function runContentAgent(instanceId: string, weekNumber: number, ye
     voiceTone: brandVoice.voiceTone,
     recurringTopics: brandVoice.recurringTopics,
     positioning: brandVoice.positioning,
+    topics: (brandVoice as any).topics || [],
+    contacts: (brandVoice as any).contacts || [],
+    narratives: (brandVoice as any).narratives || [],
   };
 
   const corpusData = {
-    summary: corpus.summary,
-    topics: corpus.topics,
-    decisions: corpus.decisions,
-    concerns: corpus.concerns,
-    opportunities: corpus.opportunities,
+    current: {
+      summary: corpus.summary,
+      topics: corpus.topics,
+      decisions: corpus.decisions,
+      concerns: corpus.concerns,
+      opportunities: corpus.opportunities,
+    },
+    activeMemory: recentCorpuses.map((c) => ({
+      period: c.weekNumber,
+      year: c.year,
+      summary: c.summary,
+      topics: c.topics,
+    })),
   };
 
   const contentOutputs: any[] = [];
