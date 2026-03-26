@@ -13,6 +13,8 @@ export interface Instance {
   company: string;
   industry: string;
   status: "ACTIVE" | "PAUSED" | "ARCHIVED";
+  processingPeriod?: "WEEKLY" | "MONTHLY";
+  activeWindow?: number;
   createdAt: string;
   _count?: {
     inputs: number;
@@ -85,6 +87,10 @@ export interface BrandVoice {
   positioning: string;
   metrics: string;
   insightHistory?: Record<string, unknown>;
+  topics: { name: string; position: string; evidence: string; status: string; locked?: boolean }[];
+  contacts: { name: string; company: string; context: string; frequency: string; locked?: boolean }[];
+  narratives: { name: string; status: string; context: string; startedWeek?: string; locked?: boolean }[];
+  lockedFields: Record<string, boolean>;
   updatedAt: string;
 }
 

@@ -23,6 +23,10 @@ export class BrandVoiceService {
       positioning: string;
       metrics: string;
       insightHistory: any;
+      topics: any;
+      contacts: any;
+      narratives: any;
+      lockedFields: any;
     }>,
   ) {
     const brandVoice = await prisma.brandVoice.update({
