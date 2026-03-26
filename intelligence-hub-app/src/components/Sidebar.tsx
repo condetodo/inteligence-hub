@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useInstances } from "@/hooks/useInstances";
+import { useInstances } from "@/contexts/InstancesContext";
 
 function getInitials(name: string): string {
   return name

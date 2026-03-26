@@ -4,10 +4,12 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Instance } from "@/lib/types";
+import { useInstances } from "@/contexts/InstancesContext";
 import { Button } from "@/components/ui/Button";
 
 export default function NewInstancePage() {
   const router = useRouter();
+  const { refetch } = useInstances();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -28,6 +30,7 @@ export default function NewInstancePage() {
     setLoading(true);
     try {
       const data = await api.post<Instance>("/instances", form);
+      await refetch();
       router.push(`/instances/${data.id}/content`);
     } catch (err: unknown) {
       const message = err && typeof err === "object" && "message" in err ? (err as { message: string }).message : "Error al crear instancia";

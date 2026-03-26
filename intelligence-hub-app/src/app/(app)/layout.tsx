@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Sidebar } from "@/components/Sidebar";
 import { ToastProvider } from "@/components/ui/Toast";
+import { InstancesProvider } from "@/contexts/InstancesContext";
 import { Spinner } from "@/components/ui/Spinner";
 import { Menu } from "lucide-react";
 
@@ -31,29 +32,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-horse-bg">
-        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <InstancesProvider>
+        <div className="min-h-screen bg-horse-bg">
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Mobile header */}
-        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-horse-gray-200 flex items-center px-4 z-20">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 text-horse-gray-500 hover:text-horse-black transition-colors"
-          >
-            <Menu size={20} />
-          </button>
-          <div className="ml-2 flex items-center gap-2">
-            <div className="w-6 h-6 bg-horse-black rounded flex items-center justify-center text-white text-xs font-bold">
-              H
+          {/* Mobile header */}
+          <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-horse-gray-200 flex items-center px-4 z-20">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-2 text-horse-gray-500 hover:text-horse-black transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="ml-2 flex items-center gap-2">
+              <div className="w-6 h-6 bg-horse-black rounded flex items-center justify-center text-white text-xs font-bold">
+                H
+              </div>
+              <span className="text-sm font-bold tracking-[1.5px] uppercase text-horse-black">
+                Horse
+              </span>
             </div>
-            <span className="text-sm font-bold tracking-[1.5px] uppercase text-horse-black">
-              Horse
-            </span>
           </div>
-        </div>
 
-        <main className="pt-14 md:pt-0 md:ml-[260px]">{children}</main>
-      </div>
+          <main className="pt-14 md:pt-0 md:ml-[260px]">{children}</main>
+        </div>
+      </InstancesProvider>
     </ToastProvider>
   );
 }

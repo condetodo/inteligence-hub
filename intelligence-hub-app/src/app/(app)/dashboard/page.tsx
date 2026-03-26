@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useInstances } from "@/hooks/useInstances";
+import { useInstances } from "@/contexts/InstancesContext";
 import { Badge } from "@/components/ui/Badge";
 import { PageLoader } from "@/components/ui/Spinner";
 
