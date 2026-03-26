@@ -1,7 +1,11 @@
+'use client';
+
+import { useState } from 'react';
 import { ProcessingRun } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Clock, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, Loader2, ChevronDown } from 'lucide-react';
+import ProcessingStepper from './ProcessingStepper';
 
 interface Props {
   runs: ProcessingRun[];
@@ -13,15 +17,12 @@ const statusConfig: Record<string, { icon: typeof Clock; color: string; label: s
   FAILED: { icon: XCircle, color: 'text-red-500', label: 'Error' },
 };
 
-const stepLabels: Record<string, string> = {
-  corpus: 'Corpus',
-  brandVoice: 'Brand Voice',
-  content: 'Contenido',
-  insights: 'Insights',
-  distribution: 'Distribución',
-};
-
 export default function ProcessingTimeline({ runs }: Props) {
+  const [expandedId, setExpandedId] = useState<string | null>(
+    // Auto-expand if there's a running run
+    runs.find((r) => r.status === 'RUNNING')?.id || null
+  );
+
   if (runs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-horse-gray-400 text-sm">
@@ -36,13 +37,18 @@ export default function ProcessingTimeline({ runs }: Props) {
       {runs.map((run) => {
         const cfg = statusConfig[run.status];
         const Icon = cfg.icon;
-        const stepEntries = Object.entries(run.steps || {});
+        const isExpanded = expandedId === run.id;
+
         return (
-          <div key={run.id} className="bg-white border border-horse-gray-200 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div key={run.id} className="bg-white border border-horse-gray-200 rounded-xl overflow-hidden">
+            {/* Clickable header */}
+            <button
+              onClick={() => setExpandedId(isExpanded ? null : run.id)}
+              className="w-full px-5 py-4 flex items-center justify-between hover:bg-horse-gray-50 transition-colors"
+            >
               <div className="flex items-center gap-3">
                 <Icon size={20} className={`${cfg.color} ${run.status === 'RUNNING' ? 'animate-spin' : ''}`} />
-                <div>
+                <div className="text-left">
                   <div className="text-sm font-medium text-horse-black">
                     Semana {run.weekNumber}, {run.year}
                   </div>
@@ -52,27 +58,24 @@ export default function ProcessingTimeline({ runs }: Props) {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
                 <span className="text-[10px] text-horse-gray-400 bg-horse-gray-100 px-2 py-0.5 rounded">
                   {run.triggeredBy === 'CRON' ? 'Automatico' : 'Manual'}
                 </span>
+                <ChevronDown
+                  size={16}
+                  className={`text-horse-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                />
               </div>
-            </div>
+            </button>
 
-            <div className="flex gap-2">
-              {stepEntries.map(([name, status]) => (
-                <div key={name} className="flex-1">
-                  <div className={`h-1.5 rounded-full mb-1.5 ${
-                    status === 'done' ? 'bg-status-approved'
-                    : status === 'running' ? 'bg-status-review animate-pulse'
-                    : status === 'failed' ? 'bg-red-400'
-                    : 'bg-horse-gray-200'
-                  }`} />
-                  <div className="text-[10px] text-horse-gray-400 font-medium">{stepLabels[name] || name}</div>
-                </div>
-              ))}
-            </div>
+            {/* Expandable stepper */}
+            {isExpanded && (
+              <div className="px-5 pb-4 border-t border-horse-gray-100">
+                <ProcessingStepper run={run} />
+              </div>
+            )}
           </div>
         );
       })}
