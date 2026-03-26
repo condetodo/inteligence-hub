@@ -6,7 +6,7 @@ const client = new Anthropic({
 });
 
 const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
-const OPUS_MODEL = 'claude-sonnet-4-5-20250929';
+const OPUS_MODEL = 'claude-opus-4-20250514';
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
