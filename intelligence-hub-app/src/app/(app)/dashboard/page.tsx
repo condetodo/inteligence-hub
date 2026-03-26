@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useInstances } from "@/contexts/InstancesContext";
 import { Badge } from "@/components/ui/Badge";
+import { RunStatusBadge } from "@/components/ui/RunStatusBadge";
 import { PageLoader } from "@/components/ui/Spinner";
+import { useDashboardPolling } from "@/hooks/useDashboardPolling";
 
 function getInitials(name: string): string {
   return name
@@ -16,6 +18,7 @@ function getInitials(name: string): string {
 
 export default function DashboardPage() {
   const { instances, loading } = useInstances();
+  const { latestRuns } = useDashboardPolling(instances);
 
   return (
     <div>
@@ -80,6 +83,10 @@ export default function DashboardPage() {
                     </div>
                     <div className="text-[10px] text-horse-gray-400 font-medium">Contenidos</div>
                   </div>
+                </div>
+
+                <div className="mt-3">
+                  <RunStatusBadge run={latestRuns[instance.id] || null} />
                 </div>
               </Link>
             ))}
