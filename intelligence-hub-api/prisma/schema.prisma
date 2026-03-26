@@ -63,6 +63,11 @@ enum RunTrigger {
   MANUAL
 }
 
+enum ProcessingPeriod {
+  WEEKLY
+  MONTHLY
+}
+
 model User {
   id        String         @id @default(cuid())
   email     String         @unique
@@ -81,8 +86,10 @@ model Instance {
   company     String
   industry    String
   status      InstanceStatus @default(ACTIVE)
-  driveFolder String?
-  createdAt   DateTime       @default(now())
+  driveFolder      String?
+  processingPeriod ProcessingPeriod @default(WEEKLY)
+  activeWindow     Int              @default(8)
+  createdAt        DateTime         @default(now())
   users       UserInstance[]
   brandVoice  BrandVoice?
   inputs      InputFile[]
@@ -114,6 +121,10 @@ model BrandVoice {
   positioning      String   @default("")
   metrics          String   @default("")
   insightHistory   Json     @default("[]")
+  topics           Json     @default("[]")
+  contacts         Json     @default("[]")
+  narratives       Json     @default("[]")
+  lockedFields     Json     @default("{}")
   updatedAt        DateTime @updatedAt
 }
 
