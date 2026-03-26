@@ -87,7 +87,26 @@
 
 ## What's Next
 
-1. **Drag & Drop file upload** — Support real file uploads (.txt, .pdf, .docx, WhatsApp .zip exports) with multer + storage, replacing the current text-paste-only approach
+### Digital Twin / Knowledge Base (CORE FEATURE)
+- **Status:** DESIGNED — Ready to implement
+- **Design doc:** `docs/plans/2026-03-26-digital-twin-kb-design.md`
+- **Phase 1 — Knowledge Base Core:**
+  - Expand BrandVoice into full KB (profile base + active memory + config)
+  - New Distillation Agent (Opus) — updates profile base respecting locked fields
+  - Configurable processing period per instance (weekly/monthly)
+  - Sliding window active memory (last N periods, default 8)
+  - Migrate Content + Insights agents to Opus, feed full KB context
+  - Filter inputs by period (uploadedAt within current week/month)
+  - Locked fields mechanism — team can lock fields from auto-update
+  - Expand Brand Voice UI with topics+positions, contacts, narratives, lock icons
+- **Phase 2 — Team Operations Report:**
+  - New agent generates operational report for communication team
+  - Detects: position changes, new/cooling topics, new contacts, tone shifts, contradictions, opportunities
+  - Editable report prompt per instance (team customizes focus)
+  - New UI tab or email/Slack delivery
+
+### Other Improvements
+1. **Drag & Drop file upload** — Support real file uploads (.txt, .pdf, .docx, WhatsApp .zip exports) with multer + storage
 2. **Bulk input upload** — Upload multiple inputs at once via drag & drop or multi-file selector
 3. **Audio input upload** — Upload audio files (.mp3/.m4a) with automatic transcription via Whisper API
 4. **Custom domain** — Connect production domain to Vercel
