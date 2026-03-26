@@ -11,7 +11,7 @@ interface Props {
 const stepIconConfig: Record<StepStatus, { icon: typeof Circle; colorClass: string; animate?: boolean }> = {
   pending: { icon: Circle, colorClass: "text-horse-gray-300" },
   running: { icon: Loader2, colorClass: "text-status-review", animate: true },
-  done: { icon: CheckCircle2, colorClass: "text-status-approved" },
+  completed: { icon: CheckCircle2, colorClass: "text-status-approved" },
   failed: { icon: XCircle, colorClass: "text-red-500" },
   reused: { icon: RefreshCw, colorClass: "text-status-review" },
   skipped: { icon: MinusCircle, colorClass: "text-horse-gray-300" },
@@ -20,7 +20,7 @@ const stepIconConfig: Record<StepStatus, { icon: typeof Circle; colorClass: stri
 const stepLineColor: Record<StepStatus, string> = {
   pending: "bg-horse-gray-200",
   running: "bg-status-review",
-  done: "bg-status-approved",
+  completed: "bg-status-approved",
   failed: "bg-red-400",
   reused: "bg-status-review",
   skipped: "bg-horse-gray-200",
@@ -87,7 +87,7 @@ export default function ProcessingStepper({ run }: Props) {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-horse-black">{label}</span>
                   <span className={`text-[11px] font-semibold ${config.colorClass}`}>
-                    {status === "done" ? "Completado" : status === "running" ? "En proceso" : status === "failed" ? "Error" : status === "reused" ? "Reutilizado" : status === "skipped" ? "Omitido" : "Pendiente"}
+                    {status === "completed" ? "Completado" : status === "running" ? "En proceso" : status === "failed" ? "Error" : status === "reused" ? "Reutilizado" : status === "skipped" ? "Omitido" : "Pendiente"}
                   </span>
                 </div>
 

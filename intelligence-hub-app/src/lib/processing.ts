@@ -11,7 +11,7 @@ export const STEP_LABELS: Record<string, string> = {
 };
 
 export function getCompletedStepCount(steps: Record<string, StepStatus>): number {
-  return Object.values(steps).filter((s) => s === "done" || s === "reused" || s === "skipped").length;
+  return Object.values(steps).filter((s) => s === "completed" || s === "reused" || s === "skipped").length;
 }
 
 export function getRunningStepName(steps: Record<string, StepStatus>): string | null {
