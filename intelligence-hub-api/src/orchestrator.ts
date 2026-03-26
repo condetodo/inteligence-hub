@@ -1,17 +1,10 @@
 import { prisma } from './lib/prisma';
 import { runCorpusBuilder } from './agents/corpusBuilder';
-import { runBrandVoiceAgent } from './agents/brandVoice';
+import { runDistillationAgent } from './agents/distillation';
 import { runContentAgent } from './agents/content';
 import { runInsightsAgent } from './agents/insights';
 import { runDistributionAgent } from './agents/distribution';
-
-function getWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
+import { getCurrentPeriodRange } from './lib/periods';
 
 async function updateStep(runId: string, step: string, status: string) {
   const run = await prisma.processingRun.findUnique({ where: { id: runId } });
@@ -25,22 +18,25 @@ async function updateStep(runId: string, step: string, status: string) {
 }
 
 export async function runOrchestrator(instanceId: string, runId: string) {
-  const now = new Date();
-  const weekNumber = getWeekNumber(now);
-  const year = now.getFullYear();
+  const instance = await prisma.instance.findUnique({ where: { id: instanceId } });
+  if (!instance) throw new Error(`Instance ${instanceId} not found`);
+
+  const periodType = (instance as any).processingPeriod || 'WEEKLY';
+  const period = getCurrentPeriodRange(periodType);
+  const weekNumber = period.periodNumber;
+  const year = period.year;
 
   console.log(`\n========================================`);
   console.log(`[Orchestrator] Starting processing for instance ${instanceId}`);
-  console.log(`[Orchestrator] Week ${weekNumber}, Year ${year}`);
+  console.log(`[Orchestrator] Period ${weekNumber}, Year ${year} (${periodType})`);
   console.log(`========================================\n`);
 
   try {
-    // Step 1: Corpus Builder (sequential)
+    // Step 1: Corpus Builder (Sonnet)
     await updateStep(runId, 'corpus', 'running');
     console.log('\n--- Step 1: Corpus Builder ---');
-    const newCorpus = await runCorpusBuilder(instanceId, weekNumber, year);
+    const newCorpus = await runCorpusBuilder(instanceId, weekNumber, year, period.start, period.end);
 
-    // Check if a corpus already exists for this week (even if no new inputs)
     const existingCorpus = !newCorpus ? await prisma.weeklyCorpus.findUnique({
       where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
     }) : newCorpus;
@@ -48,7 +44,7 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     await updateStep(runId, 'corpus', newCorpus ? 'completed' : existingCorpus ? 'reused' : 'skipped');
 
     if (!existingCorpus) {
-      console.log('[Orchestrator] No corpus available (no inputs at all). Completing run.');
+      console.log('[Orchestrator] No corpus available. Completing run.');
       await prisma.processingRun.update({
         where: { id: runId },
         data: { status: 'COMPLETED', completedAt: new Date() },
@@ -56,17 +52,13 @@ export async function runOrchestrator(instanceId: string, runId: string) {
       return;
     }
 
-    if (!newCorpus) {
-      console.log('[Orchestrator] No new inputs, but existing corpus found. Continuing with agents...');
-    }
+    // Step 2: Distillation (Opus) — replaces old BrandVoice agent
+    await updateStep(runId, 'distillation', 'running');
+    console.log('\n--- Step 2: Distillation (KB Update) ---');
+    await runDistillationAgent(instanceId, weekNumber, year);
+    await updateStep(runId, 'distillation', 'completed');
 
-    // Step 2: Brand Voice (sequential, depends on corpus)
-    await updateStep(runId, 'brandVoice', 'running');
-    console.log('\n--- Step 2: Brand Voice ---');
-    await runBrandVoiceAgent(instanceId, weekNumber, year);
-    await updateStep(runId, 'brandVoice', 'completed');
-
-    // Step 3: Content + Insights (parallel, both depend on corpus + brand voice)
+    // Step 3: Content + Insights (Opus, parallel)
     await updateStep(runId, 'content', 'running');
     await updateStep(runId, 'insights', 'running');
     console.log('\n--- Step 3: Content + Insights (parallel) ---');
@@ -85,13 +77,12 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     await updateStep(runId, 'content', contentResults ? 'completed' : 'failed');
     await updateStep(runId, 'insights', insightsResult ? 'completed' : 'failed');
 
-    // Step 4: Distribution (sequential, depends on all previous)
+    // Step 4: Distribution (Sonnet)
     await updateStep(runId, 'distribution', 'running');
     console.log('\n--- Step 4: Distribution ---');
     await runDistributionAgent(instanceId, weekNumber, year);
     await updateStep(runId, 'distribution', 'completed');
 
-    // Mark run as completed
     await prisma.processingRun.update({
       where: { id: runId },
       data: { status: 'COMPLETED', completedAt: new Date() },
@@ -99,8 +90,6 @@ export async function runOrchestrator(instanceId: string, runId: string) {
 
     console.log(`\n========================================`);
     console.log(`[Orchestrator] Processing COMPLETED for instance ${instanceId}`);
-    console.log(`[Orchestrator] Content pieces: ${Array.isArray(contentResults) ? contentResults.length : 0}`);
-    console.log(`[Orchestrator] Insights: ${insightsResult ? 'generated' : 'failed'}`);
     console.log(`========================================\n`);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
@@ -116,7 +105,6 @@ export async function runOrchestrator(instanceId: string, runId: string) {
         steps: { ...currentSteps, error: errorMsg },
       },
     });
-
     throw error;
   }
 }

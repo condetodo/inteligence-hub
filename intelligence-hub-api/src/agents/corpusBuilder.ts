@@ -39,40 +39,47 @@ FORMATO DE RESPUESTA (JSON estricto):
   }
 }`;
 
-export async function runCorpusBuilder(instanceId: string, weekNumber: number, year: number) {
-  console.log(`[CorpusBuilder] Processing inputs for instance ${instanceId}, week ${weekNumber}/${year}`);
+export async function runCorpusBuilder(
+  instanceId: string,
+  weekNumber: number,
+  year: number,
+  periodStart: Date,
+  periodEnd: Date,
+) {
+  console.log(`[CorpusBuilder] Processing inputs for instance ${instanceId}, period ${weekNumber}/${year}`);
 
-  // Get all inputs for this instance (PENDING + PROCESSED)
+  // Get all inputs uploaded within the current period
   const allInputs = await prisma.inputFile.findMany({
-    where: { instanceId },
+    where: {
+      instanceId,
+      uploadedAt: { gte: periodStart, lte: periodEnd },
+    },
     orderBy: { uploadedAt: 'asc' },
   });
 
   const pendingInputs = allInputs.filter((i) => i.status === 'PENDING');
 
   if (allInputs.length === 0) {
-    console.log('[CorpusBuilder] No inputs found at all');
+    console.log('[CorpusBuilder] No inputs found in current period');
     return null;
   }
 
   if (pendingInputs.length === 0) {
-    console.log('[CorpusBuilder] No new pending inputs found');
+    console.log('[CorpusBuilder] No new pending inputs in current period');
     return null;
   }
 
   console.log(`[CorpusBuilder] Found ${allInputs.length} total inputs (${pendingInputs.length} new)`);
 
-  // Build the user prompt with ALL inputs (not just pending)
+  // Build the user prompt with ALL inputs from the period
   const inputTexts = allInputs.map((input) =>
     `--- ${input.type}: ${input.filename} ---\n${input.content}`
   ).join('\n\n');
 
-  const userPrompt = `Procesa los siguientes ${allInputs.length} inputs de esta semana y extrae informacion estructurada:\n\n${inputTexts}`;
+  const userPrompt = `Procesa los siguientes ${allInputs.length} inputs de este periodo y extrae informacion estructurada:\n\n${inputTexts}`;
 
-  // Call Claude to extract structured data
   const result = await callSonnet(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
 
-  // Create or update weekly corpus
   const corpus = await prisma.weeklyCorpus.upsert({
     where: {
       instanceId_weekNumber_year: { instanceId, weekNumber, year },
@@ -85,9 +92,7 @@ export async function runCorpusBuilder(instanceId: string, weekNumber: number, y
       opportunities: result.opportunities as any ?? [],
     },
     create: {
-      instanceId,
-      weekNumber,
-      year,
+      instanceId, weekNumber, year,
       summary: result.summary as any ?? {},
       topics: result.topics as any ?? [],
       decisions: result.decisions as any ?? [],
@@ -96,7 +101,7 @@ export async function runCorpusBuilder(instanceId: string, weekNumber: number, y
     },
   });
 
-  // Mark only the new (PENDING) inputs as processed
+  // Mark only the pending inputs as processed
   await prisma.inputFile.updateMany({
     where: { id: { in: pendingInputs.map((i) => i.id) } },
     data: { status: 'PROCESSED', processedAt: new Date() },
