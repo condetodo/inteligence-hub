@@ -6,12 +6,22 @@ import { z } from 'zod';
 
 export const instancesRoutes = Router();
 
+const platformConfigSchema = z.object({
+  platform: z.enum(['LINKEDIN', 'X', 'TIKTOK', 'BLOG']),
+  enabled: z.boolean(),
+  postsPerPeriod: z.number().int().min(1).max(5),
+  threadsPerPeriod: z.number().int().min(0).max(2).nullable().optional(),
+});
+
 const createInstanceSchema = z.object({
   name: z.string().min(1),
   clientName: z.string().min(1),
   clientRole: z.string().min(1),
   company: z.string().min(1),
   industry: z.string().min(1),
+  processingPeriod: z.enum(['WEEKLY', 'MONTHLY']).optional(),
+  activeWindow: z.number().int().min(4).max(16).optional(),
+  platforms: z.array(platformConfigSchema).optional(),
 });
 
 const updateInstanceSchema = z.object({

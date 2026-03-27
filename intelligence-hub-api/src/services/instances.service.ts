@@ -11,15 +11,44 @@ export class InstancesService {
       clientRole: string;
       company: string;
       industry: string;
+      processingPeriod?: string;
+      activeWindow?: number;
+      platforms?: Array<{
+        platform: string;
+        enabled: boolean;
+        postsPerPeriod: number;
+        threadsPerPeriod?: number | null;
+      }>;
     },
   ) {
+    const { platforms, processingPeriod, activeWindow, ...instanceData } = data;
+
+    const defaultPlatforms = [
+      { platform: 'LINKEDIN', enabled: true, postsPerPeriod: 3, threadsPerPeriod: null },
+      { platform: 'X', enabled: true, postsPerPeriod: 2, threadsPerPeriod: 1 },
+      { platform: 'TIKTOK', enabled: true, postsPerPeriod: 2, threadsPerPeriod: null },
+      { platform: 'BLOG', enabled: true, postsPerPeriod: 1, threadsPerPeriod: null },
+    ];
+
+    const platformConfigs = platforms || defaultPlatforms;
+
     const instance = await prisma.instance.create({
       data: {
-        ...data,
+        ...instanceData,
+        ...(processingPeriod && { processingPeriod: processingPeriod as any }),
+        ...(activeWindow && { activeWindow }),
         users: { create: { userId } },
         brandVoice: { create: {} },
+        platformConfigs: {
+          create: platformConfigs.map((p) => ({
+            platform: p.platform as any,
+            enabled: p.enabled,
+            postsPerPeriod: p.postsPerPeriod,
+            threadsPerPeriod: p.threadsPerPeriod,
+          })),
+        },
       },
-      include: { brandVoice: true },
+      include: { brandVoice: true, platformConfigs: true },
     });
     return instance;
   }
