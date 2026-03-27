@@ -1,3 +1,4 @@
+import { InstanceStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 
@@ -27,7 +28,6 @@ export class InstancesService {
     const instances = await prisma.instance.findMany({
       where: {
         users: { some: { userId } },
-        status: { not: 'ARCHIVED' },
       },
       include: {
         _count: {
@@ -65,7 +65,7 @@ export class InstancesService {
       clientRole: string;
       company: string;
       industry: string;
-      status: string;
+      status: InstanceStatus;
     }>,
   ) {
     await InstancesService.getById(userId, instanceId);
