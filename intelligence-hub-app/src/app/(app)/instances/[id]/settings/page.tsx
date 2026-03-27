@@ -172,7 +172,7 @@ export default function InstanceSettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-horse-gray-700 mb-1">
-                Ventana activa (semanas)
+                Ventana activa (períodos)
               </label>
               <input
                 type="number"
@@ -183,7 +183,7 @@ export default function InstanceSettingsPage() {
                 className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark"
               />
               <p className="text-xs text-horse-gray-400 mt-1">
-                Cantidad de semanas de contenido que se consideran para el contexto activo (1–52).
+                Cuántos períodos anteriores se usan como memoria activa para el procesamiento.
               </p>
             </div>
           </div>
@@ -201,15 +201,15 @@ export default function InstanceSettingsPage() {
           Zona de peligro
         </h2>
         <p className="text-sm text-horse-gray-500 mb-4">
-          Archivar esta instancia la desactivará y dejará de generar contenido. Esta acción se puede revertir contactando a soporte.
+          Archivar esta instancia la ocultará del sidebar. Podrás restaurarla desde Configuración.
         </p>
-        <Button
+        <button
           type="button"
-          variant="outline"
           onClick={() => setShowArchiveModal(true)}
+          className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
         >
           Archivar instancia
-        </Button>
+        </button>
       </div>
 
       {/* Archive confirmation modal */}
@@ -220,9 +220,8 @@ export default function InstanceSettingsPage() {
         size="sm"
       >
         <p className="text-sm text-horse-gray-600 mb-6">
-          ¿Estás seguro de que deseas archivar la instancia{" "}
-          <span className="font-semibold text-horse-black">{instance.name}</span>?
-          Esta acción desactivará toda la generación de contenido.
+          <span className="font-semibold text-horse-black">{instance.clientName}</span>{" "}
+          dejará de aparecer en tu sidebar. Podrás restaurarla desde la página de Configuración.
         </p>
         <div className="flex gap-3 justify-end">
           <Button
@@ -232,9 +231,13 @@ export default function InstanceSettingsPage() {
           >
             Cancelar
           </Button>
-          <Button onClick={handleArchive} disabled={archiving}>
-            {archiving ? "Archivando..." : "Confirmar"}
-          </Button>
+          <button
+            onClick={handleArchive}
+            disabled={archiving}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {archiving ? "Archivando..." : "Sí, archivar"}
+          </button>
         </div>
       </Modal>
     </div>
