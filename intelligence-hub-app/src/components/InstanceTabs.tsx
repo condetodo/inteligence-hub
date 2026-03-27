@@ -20,6 +20,7 @@ export function InstanceTabs({ instanceId, counts }: InstanceTabsProps) {
     { href: `/instances/${instanceId}/insights`, label: "Insights" },
     { href: `/instances/${instanceId}/brand-voice`, label: "Brand Voice" },
     { href: `/instances/${instanceId}/history`, label: "Historial" },
+    { href: `/instances/${instanceId}/settings`, label: "Ajustes" },
   ];
 
   return (

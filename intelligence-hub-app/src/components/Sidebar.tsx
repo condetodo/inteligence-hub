@@ -68,7 +68,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         Instancias
       </div>
       <div className="flex-1 overflow-y-auto">
-        {instances.map((instance) => {
+        {instances.filter((i) => i.status !== "ARCHIVED").map((instance) => {
           const active = pathname.startsWith(`/instances/${instance.id}`);
           return (
             <Link
