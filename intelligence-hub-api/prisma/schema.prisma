@@ -99,7 +99,20 @@ model Instance {
   corpus      WeeklyCorpus[]
   content     ContentOutput[]
   insights    InsightReport[]
-  runs        ProcessingRun[]
+  runs            ProcessingRun[]
+  platformConfigs InstancePlatformConfig[]
+}
+
+model InstancePlatformConfig {
+  id               String   @id @default(cuid())
+  instance         Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId       String
+  platform         Platform
+  enabled          Boolean  @default(true)
+  postsPerPeriod   Int      @default(3)
+  threadsPerPeriod Int?
+
+  @@unique([instanceId, platform])
 }
 
 model UserInstance {
