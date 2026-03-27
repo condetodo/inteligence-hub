@@ -77,7 +77,7 @@ export class InstancesService {
         id: instanceId,
         users: { some: { userId } },
       },
-      include: { brandVoice: true },
+      include: { brandVoice: true, platformConfigs: true },
     });
     if (!instance) {
       throw new AppError(404, 'Instance not found');

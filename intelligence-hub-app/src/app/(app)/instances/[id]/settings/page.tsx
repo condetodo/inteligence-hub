@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { PageLoader } from "@/components/ui/Spinner";
+import StepPlatforms, { PlatformConfig } from "@/components/wizard/StepPlatforms";
 
 interface SettingsForm {
   name: string;
@@ -42,6 +43,7 @@ export default function InstanceSettingsPage() {
   const [instance, setInstance] = useState<Instance | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingPlatforms, setSavingPlatforms] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
 
@@ -56,6 +58,15 @@ export default function InstanceSettingsPage() {
   });
   const [initialForm, setInitialForm] = useState<string>("");
 
+  const defaultPlatforms: PlatformConfig[] = [
+    { platform: "LINKEDIN", enabled: true, postsPerPeriod: 3, threadsPerPeriod: null },
+    { platform: "X", enabled: true, postsPerPeriod: 2, threadsPerPeriod: 1 },
+    { platform: "TIKTOK", enabled: true, postsPerPeriod: 2, threadsPerPeriod: null },
+    { platform: "BLOG", enabled: true, postsPerPeriod: 1, threadsPerPeriod: null },
+  ];
+  const [platforms, setPlatforms] = useState<PlatformConfig[]>(defaultPlatforms);
+  const [initialPlatforms, setInitialPlatforms] = useState<string>(JSON.stringify(defaultPlatforms));
+
   useEffect(() => {
     api
       .get<Instance>(`/instances/${id}`)
@@ -64,12 +75,23 @@ export default function InstanceSettingsPage() {
         const f = formFromInstance(data);
         setForm(f);
         setInitialForm(JSON.stringify(f));
+        if (data.platformConfigs && data.platformConfigs.length > 0) {
+          const pConfigs: PlatformConfig[] = data.platformConfigs.map((pc) => ({
+            platform: pc.platform,
+            enabled: pc.enabled,
+            postsPerPeriod: pc.postsPerPeriod,
+            threadsPerPeriod: pc.threadsPerPeriod,
+          }));
+          setPlatforms(pConfigs);
+          setInitialPlatforms(JSON.stringify(pConfigs));
+        }
       })
       .catch(() => setInstance(null))
       .finally(() => setLoading(false));
   }, [id]);
 
   const isDirty = JSON.stringify(form) !== initialForm;
+  const isPlatformsDirty = JSON.stringify(platforms) !== initialPlatforms;
 
   const update = (field: keyof SettingsForm, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -103,6 +125,19 @@ export default function InstanceSettingsPage() {
       toast.error("Error al archivar la instancia");
       setArchiving(false);
       setShowArchiveModal(false);
+    }
+  };
+
+  const handleSavePlatforms = async () => {
+    setSavingPlatforms(true);
+    try {
+      await api.put(`/instances/${id}/platforms`, platforms);
+      setInitialPlatforms(JSON.stringify(platforms));
+      toast.success("Plataformas actualizadas correctamente");
+    } catch {
+      toast.error("Error al guardar las plataformas");
+    } finally {
+      setSavingPlatforms(false);
     }
   };
 
@@ -194,6 +229,22 @@ export default function InstanceSettingsPage() {
           {saving ? "Guardando..." : "Guardar cambios"}
         </Button>
       </form>
+
+      {/* Section — Plataformas */}
+      <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
+        <h2 className="text-base font-semibold text-horse-black mb-4">
+          Plataformas
+        </h2>
+        <StepPlatforms platforms={platforms} onChange={setPlatforms} />
+        <div className="mt-4">
+          <Button
+            onClick={handleSavePlatforms}
+            disabled={!isPlatformsDirty || savingPlatforms}
+          >
+            {savingPlatforms ? "Guardando..." : "Guardar plataformas"}
+          </Button>
+        </div>
+      </div>
 
       {/* Section C — Zona de peligro */}
       <div className="bg-white border border-red-300 rounded-xl p-6">

@@ -20,6 +20,12 @@ export interface Instance {
     inputs: number;
     content: number;
   };
+  platformConfigs?: {
+    platform: Platform;
+    enabled: boolean;
+    postsPerPeriod: number;
+    threadsPerPeriod: number | null;
+  }[];
 }
 
 // Content
