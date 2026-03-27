@@ -20,6 +20,7 @@ const updateInstanceSchema = z.object({
   clientRole: z.string().min(1).optional(),
   company: z.string().min(1).optional(),
   industry: z.string().min(1).optional(),
+  status: z.enum(["ACTIVE", "PAUSED", "ARCHIVED"]).optional(),
 });
 
 instancesRoutes.use(authenticate);

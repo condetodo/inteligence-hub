@@ -65,6 +65,7 @@ export class InstancesService {
       clientRole: string;
       company: string;
       industry: string;
+      status: string;
     }>,
   ) {
     await InstancesService.getById(userId, instanceId);
