@@ -1,9 +1,9 @@
 import { callOpus } from '../lib/claude';
 import { generateImage, buildImagePrompt } from '../lib/nanoBanana';
 
-const LINKEDIN_SYSTEM_PROMPT = `Eres un estratega de contenido experto en LinkedIn para lideres empresariales hispanohablantes.
+const buildLinkedInSystemPrompt = (postCount: number) => `Eres un estratega de contenido experto en LinkedIn para lideres empresariales hispanohablantes.
 
-TU MISION: Generar exactamente 3 publicaciones de LinkedIn, cada una con 3 variantes (A, B, C), basandote en la voz de marca y el corpus semanal proporcionados.
+TU MISION: Generar exactamente ${postCount} publicaciones de LinkedIn, cada una con 3 variantes (A, B, C), basandote en la voz de marca y el corpus semanal proporcionados.
 
 REGLAS DE FORMATO PARA LINKEDIN:
 - Cada post debe tener entre 150-250 palabras
@@ -13,7 +13,7 @@ REGLAS DE FORMATO PARA LINKEDIN:
 - NO usar bullet points excesivos - LinkedIn premia la narrativa fluida
 - Incluir una pregunta reflexiva al final para generar comentarios
 
-TIPOS DE POST (distribuir entre los 3):
+TIPOS DE POST (distribuir entre los ${postCount}):
 1. THOUGHT LEADERSHIP: Opinion fuerte sobre tendencia del sector. Empieza con una afirmacion provocadora.
 2. CASO / APRENDIZAJE: Historia real (del corpus) con leccion aplicable. Usa "La semana pasada..." o "Recientemente..."
 3. FRAMEWORK / METODO: Comparte un proceso o metodologia. Usa numeros: "3 pasos para...", "El error #1 que veo..."
@@ -42,6 +42,15 @@ FORMATO DE RESPUESTA (JSON estricto):
   ]
 }`;
 
+const buildLinkedInUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, postCount: number) =>
+  `VOZ DE MARCA:
+${JSON.stringify(brandVoice, null, 2)}
+
+CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+${JSON.stringify(corpus, null, 2)}
+
+Genera ${postCount} publicaciones de LinkedIn con 3 variantes cada una. Responde SOLO con JSON valido.`;
+
 export interface LinkedInPost {
   type: string;
   title: string;
@@ -59,16 +68,12 @@ export interface LinkedInSkillOutput {
 
 export async function generateLinkedIn(
   brandVoice: Record<string, unknown>,
-  corpus: Record<string, unknown>
+  corpus: Record<string, unknown>,
+  postCount: number = 3
 ): Promise<LinkedInSkillOutput> {
-  const userPrompt = `VOZ DE MARCA:
-${JSON.stringify(brandVoice, null, 2)}
+  const systemPrompt = buildLinkedInSystemPrompt(postCount);
+  const userPrompt = buildLinkedInUserPrompt(brandVoice, corpus, postCount);
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
-${JSON.stringify(corpus, null, 2)}
-
-Genera 3 publicaciones de LinkedIn con 3 variantes cada una. Responde SOLO con JSON valido.`;
-
-  const result = await callOpus(LINKEDIN_SYSTEM_PROMPT, userPrompt);
+  const result = await callOpus(systemPrompt, userPrompt);
   return result as unknown as LinkedInSkillOutput;
 }

@@ -1,8 +1,8 @@
 import { callOpus } from '../lib/claude';
 
-const BLOG_SYSTEM_PROMPT = `Eres un escritor experto de articulos de blog para lideres empresariales hispanohablantes. Escribes contenido de alta calidad que posiciona al autor como referente en su sector.
+const buildBlogSystemPrompt = (articleCount: number) => `Eres un escritor experto de articulos de blog para lideres empresariales hispanohablantes. Escribes contenido de alta calidad que posiciona al autor como referente en su sector.
 
-TU MISION: Generar exactamente 1 articulo de blog completo basandote en la voz de marca y el corpus semanal.
+TU MISION: Generar exactamente ${articleCount} articulo${articleCount !== 1 ? 's' : ''} de blog completo${articleCount !== 1 ? 's' : ''} basandote en la voz de marca y el corpus semanal.
 
 ESTRUCTURA DEL ARTICULO:
 1. TITULO: Claro, con gancho, orientado a beneficio. 60-70 caracteres max.
@@ -36,6 +36,15 @@ FORMATO DE RESPUESTA (JSON estricto):
   }
 }`;
 
+const buildBlogUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, articleCount: number) =>
+  `VOZ DE MARCA:
+${JSON.stringify(brandVoice, null, 2)}
+
+CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+${JSON.stringify(corpus, null, 2)}
+
+Genera ${articleCount} articulo${articleCount !== 1 ? 's' : ''} de blog completo${articleCount !== 1 ? 's' : ''}. Responde SOLO con JSON valido.`;
+
 export interface BlogSection {
   type: string;
   heading?: string;
@@ -56,16 +65,12 @@ export interface BlogSkillOutput {
 
 export async function generateBlog(
   brandVoice: Record<string, unknown>,
-  corpus: Record<string, unknown>
+  corpus: Record<string, unknown>,
+  articleCount: number = 1
 ): Promise<BlogSkillOutput> {
-  const userPrompt = `VOZ DE MARCA:
-${JSON.stringify(brandVoice, null, 2)}
+  const systemPrompt = buildBlogSystemPrompt(articleCount);
+  const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount);
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
-${JSON.stringify(corpus, null, 2)}
-
-Genera 1 articulo de blog completo. Responde SOLO con JSON valido.`;
-
-  const result = await callOpus(BLOG_SYSTEM_PROMPT, userPrompt, 12000);
+  const result = await callOpus(systemPrompt, userPrompt, 12000);
   return result as unknown as BlogSkillOutput;
 }

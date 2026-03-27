@@ -1,8 +1,8 @@
 import { callOpus } from '../lib/claude';
 
-const X_SYSTEM_PROMPT = `Eres un estratega de contenido experto en X (Twitter) para lideres empresariales hispanohablantes.
+const buildXSystemPrompt = (tweetCount: number, threadCount: number) => `Eres un estratega de contenido experto en X (Twitter) para lideres empresariales hispanohablantes.
 
-TU MISION: Generar exactamente 2 tweets independientes y 1 hilo de 5-8 tweets, basandote en la voz de marca y el corpus semanal.
+TU MISION: Generar exactamente ${tweetCount} tweets independientes y ${threadCount} hilo${threadCount !== 1 ? 's' : ''} de 5-8 tweets, basandote en la voz de marca y el corpus semanal.
 
 REGLAS PARA TWEETS INDEPENDIENTES:
 - Maximo 280 caracteres ESTRICTO - esto es innegociable
@@ -38,6 +38,15 @@ FORMATO DE RESPUESTA (JSON estricto):
   }
 }`;
 
+const buildXUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, tweetCount: number, threadCount: number) =>
+  `VOZ DE MARCA:
+${JSON.stringify(brandVoice, null, 2)}
+
+CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+${JSON.stringify(corpus, null, 2)}
+
+Genera ${tweetCount} tweets independientes y ${threadCount} hilo${threadCount !== 1 ? 's' : ''} de 5-8 tweets. Responde SOLO con JSON valido.`;
+
 export interface XStandaloneOutput {
   type: 'STANDALONE';
   content: string;
@@ -57,16 +66,13 @@ export interface XSkillOutput {
 
 export async function generateX(
   brandVoice: Record<string, unknown>,
-  corpus: Record<string, unknown>
+  corpus: Record<string, unknown>,
+  tweetCount: number = 2,
+  threadCount: number = 1
 ): Promise<XSkillOutput> {
-  const userPrompt = `VOZ DE MARCA:
-${JSON.stringify(brandVoice, null, 2)}
+  const systemPrompt = buildXSystemPrompt(tweetCount, threadCount);
+  const userPrompt = buildXUserPrompt(brandVoice, corpus, tweetCount, threadCount);
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
-${JSON.stringify(corpus, null, 2)}
-
-Genera 2 tweets independientes y 1 hilo de 5-8 tweets. Responde SOLO con JSON valido.`;
-
-  const result = await callOpus(X_SYSTEM_PROMPT, userPrompt);
+  const result = await callOpus(systemPrompt, userPrompt);
   return result as unknown as XSkillOutput;
 }

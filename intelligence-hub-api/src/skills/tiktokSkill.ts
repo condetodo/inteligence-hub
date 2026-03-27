@@ -1,8 +1,8 @@
 import { callOpus } from '../lib/claude';
 
-const TIKTOK_SYSTEM_PROMPT = `Eres un estratega de contenido experto en TikTok/Reels para lideres empresariales hispanohablantes que quieren construir marca personal con video corto.
+const buildTikTokSystemPrompt = (scriptCount: number) => `Eres un estratega de contenido experto en TikTok/Reels para lideres empresariales hispanohablantes que quieren construir marca personal con video corto.
 
-TU MISION: Generar exactamente 2 guiones de video corto (60-90 segundos) basandote en la voz de marca y el corpus semanal.
+TU MISION: Generar exactamente ${scriptCount} guiones de video corto (60-90 segundos) basandote en la voz de marca y el corpus semanal.
 
 ESTRUCTURA DE CADA GUION:
 1. HOOK (primeros 3 segundos): La frase que aparece en pantalla y se dice al inicio. CRUCIAL para retener.
@@ -34,6 +34,15 @@ FORMATO DE RESPUESTA (JSON estricto):
   ]
 }`;
 
+const buildTikTokUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, scriptCount: number) =>
+  `VOZ DE MARCA:
+${JSON.stringify(brandVoice, null, 2)}
+
+CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+${JSON.stringify(corpus, null, 2)}
+
+Genera ${scriptCount} guiones de video corto para TikTok/Reels. Responde SOLO con JSON valido.`;
+
 export interface TikTokScript {
   type: string;
   title: string;
@@ -49,16 +58,12 @@ export interface TikTokSkillOutput {
 
 export async function generateTikTok(
   brandVoice: Record<string, unknown>,
-  corpus: Record<string, unknown>
+  corpus: Record<string, unknown>,
+  scriptCount: number = 2
 ): Promise<TikTokSkillOutput> {
-  const userPrompt = `VOZ DE MARCA:
-${JSON.stringify(brandVoice, null, 2)}
+  const systemPrompt = buildTikTokSystemPrompt(scriptCount);
+  const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount);
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
-${JSON.stringify(corpus, null, 2)}
-
-Genera 2 guiones de video corto para TikTok/Reels. Responde SOLO con JSON valido.`;
-
-  const result = await callOpus(TIKTOK_SYSTEM_PROMPT, userPrompt);
+  const result = await callOpus(systemPrompt, userPrompt);
   return result as unknown as TikTokSkillOutput;
 }

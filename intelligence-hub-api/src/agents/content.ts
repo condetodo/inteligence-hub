@@ -22,6 +22,21 @@ export async function runContentAgent(instanceId: string, weekNumber: number, ye
   // Get active memory (last N periods)
   const instance = await prisma.instance.findUnique({ where: { id: instanceId } });
   const activeWindow = (instance as any)?.activeWindow ?? 8;
+
+  // Load platform configs for dynamic skill dispatch
+  let platformConfigs = await prisma.instancePlatformConfig.findMany({
+    where: { instanceId },
+  });
+
+  // Backward compatibility: if no configs exist, use defaults
+  if (platformConfigs.length === 0) {
+    platformConfigs = [
+      { platform: 'LINKEDIN', enabled: true, postsPerPeriod: 3, threadsPerPeriod: null } as any,
+      { platform: 'X', enabled: true, postsPerPeriod: 2, threadsPerPeriod: 1 } as any,
+      { platform: 'TIKTOK', enabled: true, postsPerPeriod: 2, threadsPerPeriod: null } as any,
+      { platform: 'BLOG', enabled: true, postsPerPeriod: 1, threadsPerPeriod: null } as any,
+    ];
+  }
   const recentCorpuses = await prisma.weeklyCorpus.findMany({
     where: { instanceId },
     orderBy: { createdAt: 'desc' },
@@ -58,25 +73,45 @@ export async function runContentAgent(instanceId: string, weekNumber: number, ye
 
   const contentOutputs: any[] = [];
 
-  // Run all 4 skills in parallel
-  const [linkedIn, x, tiktok, blog] = await Promise.all([
-    generateLinkedIn(brandVoiceData, corpusData).catch((e) => {
-      console.error('[ContentAgent] LinkedIn skill failed:', e.message);
-      return null;
-    }),
-    generateX(brandVoiceData, corpusData).catch((e) => {
-      console.error('[ContentAgent] X skill failed:', e.message);
-      return null;
-    }),
-    generateTikTok(brandVoiceData, corpusData).catch((e) => {
-      console.error('[ContentAgent] TikTok skill failed:', e.message);
-      return null;
-    }),
-    generateBlog(brandVoiceData, corpusData).catch((e) => {
-      console.error('[ContentAgent] Blog skill failed:', e.message);
-      return null;
-    }),
-  ]);
+  // Run enabled skills in parallel based on platform config
+  const getConfig = (platform: string) =>
+    platformConfigs.find((c) => c.platform === platform);
+
+  const tasks: Promise<any>[] = [];
+  const taskLabels: string[] = [];
+
+  const linkedInConfig = getConfig('LINKEDIN');
+  if (linkedInConfig?.enabled) {
+    tasks.push(generateLinkedIn(brandVoiceData, corpusData, linkedInConfig.postsPerPeriod).catch((e) => { console.error('[Content] LinkedIn failed:', e); return null; }));
+    taskLabels.push('LINKEDIN');
+  }
+
+  const xConfig = getConfig('X');
+  if (xConfig?.enabled) {
+    tasks.push(generateX(brandVoiceData, corpusData, xConfig.postsPerPeriod, xConfig.threadsPerPeriod ?? 1).catch((e) => { console.error('[Content] X failed:', e); return null; }));
+    taskLabels.push('X');
+  }
+
+  const tiktokConfig = getConfig('TIKTOK');
+  if (tiktokConfig?.enabled) {
+    tasks.push(generateTikTok(brandVoiceData, corpusData, tiktokConfig.postsPerPeriod).catch((e) => { console.error('[Content] TikTok failed:', e); return null; }));
+    taskLabels.push('TIKTOK');
+  }
+
+  const blogConfig = getConfig('BLOG');
+  if (blogConfig?.enabled) {
+    tasks.push(generateBlog(brandVoiceData, corpusData, blogConfig.postsPerPeriod).catch((e) => { console.error('[Content] Blog failed:', e); return null; }));
+    taskLabels.push('BLOG');
+  }
+
+  const results = await Promise.all(tasks);
+  const resultMap: Record<string, any> = {};
+  taskLabels.forEach((label, i) => { resultMap[label] = results[i]; });
+
+  const linkedIn = resultMap['LINKEDIN'] || null;
+  const x = resultMap['X'] || null;
+  const tiktok = resultMap['TIKTOK'] || null;
+  const blog = resultMap['BLOG'] || null;
 
   // Process LinkedIn posts
   if (linkedIn?.posts) {
@@ -186,7 +221,7 @@ export async function runContentAgent(instanceId: string, weekNumber: number, ye
     }
 
     const fullContent = blog.article.sections
-      .map((s) => s.heading ? `## ${s.heading}\n\n${s.content}` : s.content)
+      .map((s: any) => s.heading ? `## ${s.heading}\n\n${s.content}` : s.content)
       .join('\n\n');
 
     const output = await prisma.contentOutput.create({
