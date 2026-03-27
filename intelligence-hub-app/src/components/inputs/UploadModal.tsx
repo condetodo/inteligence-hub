@@ -10,6 +10,9 @@ const inputTypes: { value: InputType; label: string }[] = [
   { value: 'AUDIO', label: 'Audio' },
   { value: 'NOTE', label: 'Nota' },
   { value: 'INTERVIEW', label: 'Entrevista' },
+  { value: 'LINKEDIN', label: 'LinkedIn' },
+  { value: 'MEETING', label: 'Reunion' },
+  { value: 'ARTICLE', label: 'Articulo' },
 ];
 
 interface Props {

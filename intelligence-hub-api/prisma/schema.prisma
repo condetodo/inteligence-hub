@@ -24,6 +24,9 @@ enum InputType {
   AUDIO
   NOTE
   INTERVIEW
+  LINKEDIN
+  MEETING
+  ARTICLE
 }
 
 enum InputStatus {

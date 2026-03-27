@@ -46,7 +46,7 @@ export interface ContentOutput {
 }
 
 // Inputs
-export type InputType = "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW";
+export type InputType = "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW" | "LINKEDIN" | "MEETING" | "ARTICLE";
 export type InputStatus = "PENDING" | "PROCESSED";
 
 export interface InputFile {

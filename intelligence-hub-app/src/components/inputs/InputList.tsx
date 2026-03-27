@@ -11,6 +11,9 @@ const typeConfig: Record<InputType, { label: string; color: string }> = {
   AUDIO: { label: 'Audio', color: 'bg-purple-100 text-purple-700' },
   NOTE: { label: 'Nota', color: 'bg-yellow-100 text-yellow-700' },
   INTERVIEW: { label: 'Entrevista', color: 'bg-orange-100 text-orange-700' },
+  LINKEDIN: { label: 'LinkedIn', color: 'bg-sky-100 text-sky-700' },
+  MEETING: { label: 'Reunion', color: 'bg-indigo-100 text-indigo-700' },
+  ARTICLE: { label: 'Articulo', color: 'bg-rose-100 text-rose-700' },
 };
 
 interface Props {

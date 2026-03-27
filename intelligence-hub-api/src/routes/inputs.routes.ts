@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const inputsRoutes = Router();
 
 const createInputSchema = z.object({
-  type: z.enum(['WHATSAPP', 'EMAIL', 'AUDIO', 'NOTE', 'INTERVIEW']),
+  type: z.enum(['WHATSAPP', 'EMAIL', 'AUDIO', 'NOTE', 'INTERVIEW', 'LINKEDIN', 'MEETING', 'ARTICLE']),
   filename: z.string().min(1),
   content: z.string().min(1),
 });
