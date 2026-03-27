@@ -1,5 +1,5 @@
 'use client';
-import { Linkedin, Twitter, Video, FileText } from 'lucide-react';
+import { Linkedin, Twitter, Video, FileText, LucideIcon } from 'lucide-react';
 
 export interface PlatformConfig {
   platform: string;
@@ -13,7 +13,7 @@ interface Props {
   onChange: (platforms: PlatformConfig[]) => void;
 }
 
-const platformMeta: Record<string, { label: string; icon: any; color: string; hasThreads: boolean; maxPosts: number; maxThreads: number }> = {
+const platformMeta: Record<string, { label: string; icon: LucideIcon; color: string; hasThreads: boolean; maxPosts: number; maxThreads: number }> = {
   LINKEDIN: { label: 'LinkedIn', icon: Linkedin, color: 'text-sky-600', hasThreads: false, maxPosts: 5, maxThreads: 0 },
   X: { label: 'X / Twitter', icon: Twitter, color: 'text-gray-800', hasThreads: true, maxPosts: 5, maxThreads: 2 },
   TIKTOK: { label: 'TikTok', icon: Video, color: 'text-pink-500', hasThreads: false, maxPosts: 4, maxThreads: 0 },
