@@ -46,6 +46,9 @@ export default function InstanceSettingsPage() {
   const [savingPlatforms, setSavingPlatforms] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
 
   const [form, setForm] = useState<SettingsForm>({
     name: "",
@@ -125,6 +128,20 @@ export default function InstanceSettingsPage() {
       toast.error("Error al archivar la instancia");
       setArchiving(false);
       setShowArchiveModal(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.delete(`/instances/${id}/permanent`);
+      await refetch();
+      toast.success("Instancia eliminada permanentemente");
+      router.push("/dashboard");
+    } catch {
+      toast.error("Error al eliminar la instancia");
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -251,16 +268,34 @@ export default function InstanceSettingsPage() {
         <h2 className="text-base font-semibold text-red-600 mb-2">
           Zona de peligro
         </h2>
-        <p className="text-sm text-horse-gray-500 mb-4">
-          Archivar esta instancia la ocultará del sidebar. Podrás restaurarla desde Configuración.
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowArchiveModal(true)}
-          className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-        >
-          Archivar instancia
-        </button>
+
+        {instance.status !== "ARCHIVED" && (
+          <div className="mb-5">
+            <p className="text-sm text-horse-gray-500 mb-3">
+              Archivar esta instancia la ocultará del sidebar. Podrás restaurarla desde Configuración.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowArchiveModal(true)}
+              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              Archivar instancia
+            </button>
+          </div>
+        )}
+
+        <div className={instance.status !== "ARCHIVED" ? "pt-5 border-t border-red-200" : ""}>
+          <p className="text-sm text-horse-gray-500 mb-3">
+            Eliminar permanentemente esta instancia y todo su contenido, inputs, insights y brand voice. <span className="font-semibold text-red-600">Esta acción no se puede deshacer.</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => { setDeleteConfirmName(""); setShowDeleteModal(true); }}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Eliminar permanentemente
+          </button>
+        </div>
       </div>
 
       {/* Archive confirmation modal */}
@@ -288,6 +323,44 @@ export default function InstanceSettingsPage() {
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
             {archiving ? "Archivando..." : "Sí, archivar"}
+          </button>
+        </div>
+      </Modal>
+
+      {/* Delete confirmation modal */}
+      <Modal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Eliminar instancia permanentemente"
+        size="sm"
+      >
+        <p className="text-sm text-horse-gray-600 mb-4">
+          Se eliminará <span className="font-semibold text-horse-black">{instance.clientName}</span> junto con todo su contenido, inputs, insights y brand voice. Esta acción no se puede deshacer.
+        </p>
+        <p className="text-sm text-horse-gray-600 mb-2">
+          Escribí <span className="font-mono font-semibold text-red-600">{instance.clientName}</span> para confirmar:
+        </p>
+        <input
+          type="text"
+          value={deleteConfirmName}
+          onChange={(e) => setDeleteConfirmName(e.target.value)}
+          placeholder={instance.clientName}
+          className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-red-400 mb-6"
+        />
+        <div className="flex gap-3 justify-end">
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={deleting}
+          >
+            Cancelar
+          </Button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting || deleteConfirmName !== instance.clientName}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {deleting ? "Eliminando..." : "Eliminar permanentemente"}
           </button>
         </div>
       </Modal>

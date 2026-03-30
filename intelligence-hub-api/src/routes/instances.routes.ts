@@ -40,6 +40,7 @@ instancesRoutes.get('/', InstancesController.list);
 instancesRoutes.get('/:id', InstancesController.getById);
 instancesRoutes.put('/:id', validateBody(updateInstanceSchema), InstancesController.update);
 instancesRoutes.delete('/:id', InstancesController.archive);
+instancesRoutes.delete('/:id/permanent', InstancesController.destroy);
 
 instancesRoutes.put('/:id/platforms', async (req: Request, res: Response, next: NextFunction) => {
   try {

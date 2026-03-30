@@ -113,4 +113,9 @@ export class InstancesService {
     });
     return archived;
   }
+
+  static async destroy(userId: string, instanceId: string) {
+    await InstancesService.getById(userId, instanceId);
+    await prisma.instance.delete({ where: { id: instanceId } });
+  }
 }

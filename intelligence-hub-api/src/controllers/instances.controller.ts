@@ -47,4 +47,13 @@ export class InstancesController {
       next(error);
     }
   }
+
+  static async destroy(req: Request, res: Response, next: NextFunction) {
+    try {
+      await InstancesService.destroy(req.userId!, param(req.params.id));
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
 }
