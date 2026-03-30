@@ -2,7 +2,7 @@
 
 import { ContentOutput, Variant } from '@/lib/types';
 import PlatformBadge from '@/components/ui/PlatformBadge';
-import { Check, X } from 'lucide-react';
+import { Check, X, Send } from 'lucide-react';
 
 interface Props {
   item: ContentOutput;
@@ -61,7 +61,16 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
           {typeLabels[item.type] || item.type}
         </span>
         <div className="flex gap-1.5">
-          {(item.status === 'DRAFT' || item.status === 'REVIEW') && onApprove && (
+          {item.status === 'DRAFT' && onApprove && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
+              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-blue-400 hover:text-blue-400 hover:bg-blue-50 transition-colors"
+              title="Enviar a revisión"
+            >
+              <Check size={14} />
+            </button>
+          )}
+          {item.status === 'REVIEW' && onApprove && (
             <button
               onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors"
@@ -70,17 +79,23 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
               <Check size={14} />
             </button>
           )}
-          {item.status === 'REVIEW' && onReject && (
+          {(item.status === 'REVIEW' || item.status === 'APPROVED') && onReject && (
             <button
               onClick={(e) => { e.stopPropagation(); onReject(item.id); }}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-red-400 hover:text-red-400 hover:bg-red-50 transition-colors"
-              title="Rechazar"
+              title="Volver atrás"
             >
               <X size={14} />
             </button>
           )}
-          {item.status === 'APPROVED' && (
-            <span className="text-status-approved font-medium text-[11px]">✓ Aprobado</span>
+          {item.status === 'APPROVED' && onApprove && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
+              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-horse-black hover:text-horse-black hover:bg-horse-gray-100 transition-colors"
+              title="Marcar como publicado"
+            >
+              <Send size={13} />
+            </button>
           )}
           {item.status === 'PUBLISHED' && item.engagement && (
             <span className="text-horse-black font-medium text-[11px]">

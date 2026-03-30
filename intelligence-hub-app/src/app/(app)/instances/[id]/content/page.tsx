@@ -57,8 +57,30 @@ export default function ContentPage() {
     }
   };
 
-  const handleApprove = (contentId: string) => handleStatusChange(contentId, 'APPROVED');
-  const handleReject = (contentId: string) => handleStatusChange(contentId, 'DRAFT');
+  const nextStatus: Record<string, ContentStatus> = {
+    DRAFT: 'REVIEW',
+    REVIEW: 'APPROVED',
+    APPROVED: 'PUBLISHED',
+  };
+
+  const prevStatus: Record<string, ContentStatus> = {
+    REVIEW: 'DRAFT',
+    APPROVED: 'REVIEW',
+  };
+
+  const handleAdvance = (contentId: string) => {
+    const item = items.find((i) => i.id === contentId);
+    if (!item) return;
+    const next = nextStatus[item.status];
+    if (next) handleStatusChange(contentId, next);
+  };
+
+  const handleReject = (contentId: string) => {
+    const item = items.find((i) => i.id === contentId);
+    if (!item) return;
+    const prev = prevStatus[item.status];
+    if (prev) handleStatusChange(contentId, prev);
+  };
 
   const handleSelectVariant = (variant: Variant, groupItems: ContentOutput[]) => {
     const target = groupItems.find((i) => i.variant === variant);
@@ -83,7 +105,7 @@ export default function ContentPage() {
       ) : (
         <KanbanBoard
           items={items}
-          onApprove={handleApprove}
+          onApprove={handleAdvance}
           onReject={handleReject}
           onSelectVariant={handleSelectVariant}
           onCardClick={setSelectedItem}
