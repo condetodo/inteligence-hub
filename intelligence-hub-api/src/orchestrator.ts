@@ -58,6 +58,30 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     await runDistillationAgent(instanceId, weekNumber, year);
     await updateStep(runId, 'distillation', 'completed');
 
+    // Step 2.5: Capture Brand Voice snapshot
+    console.log('\n--- Step 2.5: Brand Voice Snapshot ---');
+    const updatedBV = await prisma.brandVoice.findUnique({ where: { instanceId } });
+    if (updatedBV) {
+      const snapshotData = {
+        identity: updatedBV.identity,
+        valueProposition: updatedBV.valueProposition,
+        audience: updatedBV.audience,
+        voiceTone: updatedBV.voiceTone as any,
+        recurringTopics: updatedBV.recurringTopics as any,
+        positioning: updatedBV.positioning,
+        metrics: updatedBV.metrics,
+        topics: ((updatedBV as any).topics || []) as any,
+        contacts: ((updatedBV as any).contacts || []) as any,
+        narratives: ((updatedBV as any).narratives || []) as any,
+      };
+      await prisma.brandVoiceSnapshot.upsert({
+        where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
+        update: snapshotData,
+        create: { instanceId, weekNumber, year, ...snapshotData },
+      });
+      console.log(`[Orchestrator] Brand Voice snapshot saved for week ${weekNumber}/${year}`);
+    }
+
     // Step 3: Content + Insights (Opus, parallel)
     await updateStep(runId, 'content', 'running');
     await updateStep(runId, 'insights', 'running');

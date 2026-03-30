@@ -12,6 +12,16 @@ export class BrandVoiceService {
     return brandVoice;
   }
 
+  static async getSnapshot(instanceId: string, weekNumber: number, year: number) {
+    const snapshot = await prisma.brandVoiceSnapshot.findUnique({
+      where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
+    });
+    if (!snapshot) {
+      throw new AppError(404, 'Brand voice snapshot not found for this week');
+    }
+    return snapshot;
+  }
+
   static async update(
     instanceId: string,
     data: Partial<{

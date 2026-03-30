@@ -7,9 +7,10 @@ import { Save } from 'lucide-react';
 interface Props {
   data: BrandVoice;
   onSave: (data: Partial<BrandVoice>) => Promise<void>;
+  readOnly?: boolean;
 }
 
-export default function BrandVoiceForm({ data, onSave }: Props) {
+export default function BrandVoiceForm({ data, onSave, readOnly = false }: Props) {
   const [form, setForm] = useState({
     identity: data.identity || '',
     valueProposition: data.valueProposition || '',
@@ -58,8 +59,9 @@ export default function BrandVoiceForm({ data, onSave }: Props) {
           <textarea
             value={form[s.key as keyof typeof form] as string}
             onChange={(e) => updateField(s.key, e.target.value)}
+            disabled={readOnly}
             rows={4}
-            className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm text-horse-gray-700 leading-relaxed focus:outline-none focus:border-horse-black transition-colors resize-none"
+            className={`w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm text-horse-gray-700 leading-relaxed focus:outline-none focus:border-horse-black transition-colors resize-none ${readOnly ? 'bg-horse-gray-50 cursor-not-allowed' : ''}`}
           />
         </div>
       ))}
@@ -75,7 +77,8 @@ export default function BrandVoiceForm({ data, onSave }: Props) {
                 ...prev,
                 voiceTone: { ...prev.voiceTone, adjectives: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) },
               }))}
-              className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors"
+              disabled={readOnly}
+              className={`w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors ${readOnly ? 'bg-horse-gray-50 cursor-not-allowed' : ''}`}
             />
           </div>
           <div>
@@ -86,8 +89,9 @@ export default function BrandVoiceForm({ data, onSave }: Props) {
                 ...prev,
                 voiceTone: { ...prev.voiceTone, examples: e.target.value.split('\n').filter(Boolean) },
               }))}
+              disabled={readOnly}
               rows={3}
-              className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none"
+              className={`w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none ${readOnly ? 'bg-horse-gray-50 cursor-not-allowed' : ''}`}
             />
           </div>
           <div>
@@ -98,8 +102,9 @@ export default function BrandVoiceForm({ data, onSave }: Props) {
                 ...prev,
                 voiceTone: { ...prev.voiceTone, antiPatterns: e.target.value.split('\n').filter(Boolean) },
               }))}
+              disabled={readOnly}
               rows={3}
-              className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none"
+              className={`w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none ${readOnly ? 'bg-horse-gray-50 cursor-not-allowed' : ''}`}
             />
           </div>
         </div>
@@ -113,21 +118,24 @@ export default function BrandVoiceForm({ data, onSave }: Props) {
             ...prev,
             recurringTopics: e.target.value.split('\n').filter(Boolean),
           }))}
+          disabled={readOnly}
           rows={5}
-          className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none"
+          className={`w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none ${readOnly ? 'bg-horse-gray-50 cursor-not-allowed' : ''}`}
         />
       </div>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-horse-black text-white text-sm font-medium hover:bg-black disabled:opacity-50 transition-colors"
-        >
-          <Save size={16} />
-          {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar cambios'}
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-horse-black text-white text-sm font-medium hover:bg-black disabled:opacity-50 transition-colors"
+          >
+            <Save size={16} />
+            {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar cambios'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
