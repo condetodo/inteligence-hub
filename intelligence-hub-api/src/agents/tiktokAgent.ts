@@ -1,4 +1,22 @@
 import { callOpus } from '../lib/claude';
+import { prisma } from '../lib/prisma';
+
+// --- Types ---
+
+export interface TikTokScript {
+  type: string;
+  title: string;
+  hook: string;
+  script: string;
+  duration: string;
+  imagePrompt: string;
+}
+
+export interface TikTokSkillOutput {
+  scripts: TikTokScript[];
+}
+
+// --- Prompts ---
 
 const buildTikTokSystemPrompt = (scriptCount: number) => `Eres un estratega de contenido experto en TikTok/Reels para lideres empresariales hispanohablantes que quieren construir marca personal con video corto.
 
@@ -34,7 +52,11 @@ FORMATO DE RESPUESTA (JSON estricto):
   ]
 }`;
 
-const buildTikTokUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, scriptCount: number) =>
+const buildTikTokUserPrompt = (
+  brandVoice: Record<string, unknown>,
+  corpus: Record<string, unknown>,
+  scriptCount: number,
+) =>
   `VOZ DE MARCA:
 ${JSON.stringify(brandVoice, null, 2)}
 
@@ -43,27 +65,50 @@ ${JSON.stringify(corpus, null, 2)}
 
 Genera ${scriptCount} guiones de video corto para TikTok/Reels. Responde SOLO con JSON valido.`;
 
-export interface TikTokScript {
-  type: string;
-  title: string;
-  hook: string;
-  script: string;
-  duration: string;
-  imagePrompt: string;
-}
+// --- Agent ---
 
-export interface TikTokSkillOutput {
-  scripts: TikTokScript[];
-}
-
-export async function generateTikTok(
+export async function runTikTokAgent(
+  instanceId: string,
+  weekNumber: number,
+  year: number,
   brandVoice: Record<string, unknown>,
   corpus: Record<string, unknown>,
-  scriptCount: number = 2
-): Promise<TikTokSkillOutput> {
+  config: { postsPerPeriod: number },
+): Promise<any[]> {
+  const scriptCount = config.postsPerPeriod;
+  console.log(`[TikTokAgent] Generating ${scriptCount} scripts for instance ${instanceId}, week ${weekNumber}/${year}`);
+
+  // 1. Generate content via LLM
   const systemPrompt = buildTikTokSystemPrompt(scriptCount);
   const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount);
+  const result = await callOpus(systemPrompt, userPrompt) as unknown as TikTokSkillOutput;
 
-  const result = await callOpus(systemPrompt, userPrompt);
-  return result as unknown as TikTokSkillOutput;
+  if (!result?.scripts) {
+    console.error('[TikTokAgent] No scripts returned from LLM');
+    return [];
+  }
+
+  // 2. Persist scripts (no image generation — only store imagePrompt for thumbnails)
+  const contentOutputs: any[] = [];
+
+  for (const script of result.scripts) {
+    const output = await prisma.contentOutput.create({
+      data: {
+        instanceId,
+        weekNumber,
+        year,
+        platform: 'TIKTOK',
+        type: 'SCRIPT',
+        title: script.title,
+        content: script.script,
+        imagePrompt: script.imagePrompt,
+        variant: 'A',
+        status: 'DRAFT',
+      },
+    });
+    contentOutputs.push(output);
+  }
+
+  console.log(`[TikTokAgent] Created ${contentOutputs.length} TikTok scripts`);
+  return contentOutputs;
 }

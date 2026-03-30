@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callSonnet } from '../lib/claude';
+import { callOpus } from '../lib/claude';
 
 const CORPUS_SYSTEM_PROMPT = `Eres un analista de comunicaciones experto. Tu trabajo es procesar conversaciones, emails y notas en bruto y extraer informacion estructurada.
 
@@ -78,7 +78,7 @@ export async function runCorpusBuilder(
 
   const userPrompt = `Procesa los siguientes ${allInputs.length} inputs de este periodo y extrae informacion estructurada:\n\n${inputTexts}`;
 
-  const result = await callSonnet(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
+  const result = await callOpus(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
 
   const corpus = await prisma.weeklyCorpus.upsert({
     where: {

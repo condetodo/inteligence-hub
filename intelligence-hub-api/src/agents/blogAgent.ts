@@ -1,4 +1,28 @@
 import { callOpus } from '../lib/claude';
+import { generateImage } from '../lib/nanoBanana';
+import { prisma } from '../lib/prisma';
+
+// --- Types ---
+
+export interface BlogSection {
+  type: string;
+  heading?: string;
+  content: string;
+}
+
+export interface BlogArticle {
+  title: string;
+  subtitle: string;
+  imagePrompt: string;
+  sections: BlogSection[];
+  seoKeywords: string[];
+}
+
+export interface BlogSkillOutput {
+  article: BlogArticle;
+}
+
+// --- Prompts ---
 
 const buildBlogSystemPrompt = (articleCount: number) => `Eres un escritor experto de articulos de blog para lideres empresariales hispanohablantes. Escribes contenido de alta calidad que posiciona al autor como referente en su sector.
 
@@ -36,7 +60,11 @@ FORMATO DE RESPUESTA (JSON estricto):
   }
 }`;
 
-const buildBlogUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, articleCount: number) =>
+const buildBlogUserPrompt = (
+  brandVoice: Record<string, unknown>,
+  corpus: Record<string, unknown>,
+  articleCount: number,
+) =>
   `VOZ DE MARCA:
 ${JSON.stringify(brandVoice, null, 2)}
 
@@ -45,32 +73,61 @@ ${JSON.stringify(corpus, null, 2)}
 
 Genera ${articleCount} articulo${articleCount !== 1 ? 's' : ''} de blog completo${articleCount !== 1 ? 's' : ''}. Responde SOLO con JSON valido.`;
 
-export interface BlogSection {
-  type: string;
-  heading?: string;
-  content: string;
-}
+// --- Agent ---
 
-export interface BlogArticle {
-  title: string;
-  subtitle: string;
-  imagePrompt: string;
-  sections: BlogSection[];
-  seoKeywords: string[];
-}
-
-export interface BlogSkillOutput {
-  article: BlogArticle;
-}
-
-export async function generateBlog(
+export async function runBlogAgent(
+  instanceId: string,
+  weekNumber: number,
+  year: number,
   brandVoice: Record<string, unknown>,
   corpus: Record<string, unknown>,
-  articleCount: number = 1
-): Promise<BlogSkillOutput> {
+  config: { postsPerPeriod: number },
+): Promise<any[]> {
+  const articleCount = config.postsPerPeriod;
+  console.log(`[BlogAgent] Generating ${articleCount} articles for instance ${instanceId}, week ${weekNumber}/${year}`);
+
+  // 1. Generate content via LLM (blog uses higher maxTokens)
   const systemPrompt = buildBlogSystemPrompt(articleCount);
   const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount);
+  const result = await callOpus(systemPrompt, userPrompt, 12000) as unknown as BlogSkillOutput;
 
-  const result = await callOpus(systemPrompt, userPrompt, 12000);
-  return result as unknown as BlogSkillOutput;
+  if (!result?.article) {
+    console.error('[BlogAgent] No article returned from LLM');
+    return [];
+  }
+
+  // 2. Persist article with image generation
+  const contentOutputs: any[] = [];
+
+  let imageUrl: string | null = null;
+  try {
+    const img = await generateImage(result.article.imagePrompt);
+    imageUrl = `data:${img.mimeType};base64,${img.base64}`;
+  } catch (e: any) {
+    console.error('[BlogAgent] Image generation failed:', e.message);
+  }
+
+  const fullContent = result.article.sections
+    .map((s: BlogSection) => s.heading ? `## ${s.heading}\n\n${s.content}` : s.content)
+    .join('\n\n');
+
+  const output = await prisma.contentOutput.create({
+    data: {
+      instanceId,
+      weekNumber,
+      year,
+      platform: 'BLOG',
+      type: 'ARTICLE',
+      title: result.article.title,
+      content: fullContent,
+      imageUrl,
+      imagePrompt: result.article.imagePrompt,
+      variant: 'A',
+      status: 'DRAFT',
+    },
+  });
+  contentOutputs.push(output);
+
+  console.log(`[BlogAgent] Created ${contentOutputs.length} blog article`);
+  return contentOutputs;
 }

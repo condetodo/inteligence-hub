@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callSonnet } from '../lib/claude';
+import { callOpus } from '../lib/claude';
 
 const BRAND_VOICE_SYSTEM_PROMPT = `Eres un analista de marca personal experto. Tu trabajo es actualizar el perfil de voz de marca de un cliente basandote en nuevos datos semanales.
 
@@ -86,7 +86,7 @@ ${JSON.stringify({
 
 Analiza si hay cambios significativos en la voz de marca y genera el insight semanal.`;
 
-  const result = await callSonnet(BRAND_VOICE_SYSTEM_PROMPT, userPrompt);
+  const result = await callOpus(BRAND_VOICE_SYSTEM_PROMPT, userPrompt);
 
   // Update brand voice with new data
   const updateData: any = {};

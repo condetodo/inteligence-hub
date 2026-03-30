@@ -1,5 +1,25 @@
 import { callOpus } from '../lib/claude';
-import { generateImage, buildImagePrompt } from '../lib/nanoBanana';
+import { generateImage } from '../lib/nanoBanana';
+import { prisma } from '../lib/prisma';
+
+// --- Types ---
+
+export interface LinkedInPost {
+  type: string;
+  title: string;
+  imagePrompt: string;
+  variants: {
+    A: { content: string; hook: string };
+    B: { content: string; hook: string };
+    C: { content: string; hook: string };
+  };
+}
+
+export interface LinkedInSkillOutput {
+  posts: LinkedInPost[];
+}
+
+// --- Prompts ---
 
 const buildLinkedInSystemPrompt = (postCount: number) => `Eres un estratega de contenido experto en LinkedIn para lideres empresariales hispanohablantes.
 
@@ -42,7 +62,11 @@ FORMATO DE RESPUESTA (JSON estricto):
   ]
 }`;
 
-const buildLinkedInUserPrompt = (brandVoice: Record<string, unknown>, corpus: Record<string, unknown>, postCount: number) =>
+const buildLinkedInUserPrompt = (
+  brandVoice: Record<string, unknown>,
+  corpus: Record<string, unknown>,
+  postCount: number,
+) =>
   `VOZ DE MARCA:
 ${JSON.stringify(brandVoice, null, 2)}
 
@@ -51,29 +75,64 @@ ${JSON.stringify(corpus, null, 2)}
 
 Genera ${postCount} publicaciones de LinkedIn con 3 variantes cada una. Responde SOLO con JSON valido.`;
 
-export interface LinkedInPost {
-  type: string;
-  title: string;
-  imagePrompt: string;
-  variants: {
-    A: { content: string; hook: string };
-    B: { content: string; hook: string };
-    C: { content: string; hook: string };
-  };
-}
+// --- Agent ---
 
-export interface LinkedInSkillOutput {
-  posts: LinkedInPost[];
-}
-
-export async function generateLinkedIn(
+export async function runLinkedInAgent(
+  instanceId: string,
+  weekNumber: number,
+  year: number,
   brandVoice: Record<string, unknown>,
   corpus: Record<string, unknown>,
-  postCount: number = 3
-): Promise<LinkedInSkillOutput> {
+  config: { postsPerPeriod: number },
+): Promise<any[]> {
+  const postCount = config.postsPerPeriod;
+  console.log(`[LinkedInAgent] Generating ${postCount} posts for instance ${instanceId}, week ${weekNumber}/${year}`);
+
+  // 1. Generate content via LLM
   const systemPrompt = buildLinkedInSystemPrompt(postCount);
   const userPrompt = buildLinkedInUserPrompt(brandVoice, corpus, postCount);
+  const result = await callOpus(systemPrompt, userPrompt) as unknown as LinkedInSkillOutput;
 
-  const result = await callOpus(systemPrompt, userPrompt);
-  return result as unknown as LinkedInSkillOutput;
+  if (!result?.posts) {
+    console.error('[LinkedInAgent] No posts returned from LLM');
+    return [];
+  }
+
+  // 2. Persist posts with image generation
+  const contentOutputs: any[] = [];
+
+  for (const post of result.posts) {
+    for (const variant of ['A', 'B', 'C'] as const) {
+      const v = post.variants[variant];
+      if (!v) continue;
+
+      let imageUrl: string | null = null;
+      try {
+        const img = await generateImage(post.imagePrompt);
+        imageUrl = `data:${img.mimeType};base64,${img.base64}`;
+      } catch (e: any) {
+        console.error('[LinkedInAgent] Image generation failed:', e.message);
+      }
+
+      const output = await prisma.contentOutput.create({
+        data: {
+          instanceId,
+          weekNumber,
+          year,
+          platform: 'LINKEDIN',
+          type: 'POST',
+          title: post.title,
+          content: v.content,
+          imageUrl,
+          imagePrompt: post.imagePrompt,
+          variant,
+          status: 'DRAFT',
+        },
+      });
+      contentOutputs.push(output);
+    }
+  }
+
+  console.log(`[LinkedInAgent] Created ${contentOutputs.length} LinkedIn variants`);
+  return contentOutputs;
 }
