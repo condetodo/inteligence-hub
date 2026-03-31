@@ -77,6 +77,15 @@ export async function runContentOrchestrator(
     })),
   };
 
+  // ── Clean up old drafts before generating new ones ─────────────────
+  // Only DRAFT content is removed. REVIEW, APPROVED, and PUBLISHED are preserved.
+  const deleted = await prisma.contentOutput.deleteMany({
+    where: { instanceId, weekNumber, year, status: 'DRAFT' },
+  });
+  if (deleted.count > 0) {
+    console.log(`[ContentOrchestrator] Removed ${deleted.count} old draft(s) for week ${weekNumber}/${year}`);
+  }
+
   // ── Dispatch enabled agents in parallel ────────────────────────────
 
   const getConfig = (platform: string) =>
