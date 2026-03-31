@@ -21,7 +21,7 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
     try {
       await api.post(`/instances/${instance.id}/process`);
       toast.success("Procesamiento iniciado");
-      router.refresh();
+      router.push(`/instances/${instance.id}/history`);
     } catch (err: unknown) {
       const error = err as { message?: string; body?: { error?: string } };
       const msg = error?.body?.error || error?.message || "Error desconocido";
