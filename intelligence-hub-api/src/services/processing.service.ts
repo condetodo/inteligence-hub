@@ -10,7 +10,41 @@ function getWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+const STALE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+
 export class ProcessingService {
+  /** Mark a stuck run as FAILED with a reason */
+  static async failStaleRun(runId: string, steps: Record<string, string>, reason: string) {
+    // Mark any still-running/pending steps as failed
+    const updatedSteps = { ...steps };
+    for (const key of Object.keys(updatedSteps)) {
+      if (updatedSteps[key] === 'running' || updatedSteps[key] === 'pending') {
+        updatedSteps[key] = 'failed';
+      }
+    }
+    await prisma.processingRun.update({
+      where: { id: runId },
+      data: { status: 'FAILED', completedAt: new Date(), steps: updatedSteps },
+    });
+    console.log(`[ProcessingService] Run ${runId} marked as FAILED: ${reason}`);
+  }
+
+  /** Recover all RUNNING runs on server startup (they are guaranteed stale) */
+  static async recoverStaleRuns() {
+    const staleRuns = await prisma.processingRun.findMany({
+      where: { status: 'RUNNING' },
+    });
+    if (staleRuns.length === 0) return;
+    console.log(`[ProcessingService] Found ${staleRuns.length} stale run(s) from previous session, recovering...`);
+    for (const run of staleRuns) {
+      await ProcessingService.failStaleRun(
+        run.id,
+        (run.steps as Record<string, string>) ?? {},
+        'Server restarted while run was in progress',
+      );
+    }
+  }
+
   static async trigger(instanceId: string) {
     const now = new Date();
     const weekNumber = getWeekNumber(now);
@@ -20,7 +54,16 @@ export class ProcessingService {
       where: { instanceId, status: 'RUNNING' },
     });
     if (existing) {
-      throw new AppError(409, 'A processing run is already in progress');
+      const runAge = Date.now() - new Date(existing.startedAt).getTime();
+      if (runAge > STALE_TIMEOUT_MS) {
+        await ProcessingService.failStaleRun(
+          existing.id,
+          (existing.steps as Record<string, string>) ?? {},
+          `Run exceeded ${STALE_TIMEOUT_MS / 60000}-minute timeout`,
+        );
+      } else {
+        throw new AppError(409, 'A processing run is already in progress');
+      }
     }
 
     const run = await prisma.processingRun.create({

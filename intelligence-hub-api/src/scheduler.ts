@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { prisma } from './lib/prisma';
 import { runOrchestrator } from './orchestrator';
+import { ProcessingService } from './services/processing.service';
 
 function getWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -25,13 +26,22 @@ export function startScheduler() {
 
     for (const instance of instances) {
       try {
-        // Check if already running
+        // Check if already running (with stale detection)
         const existing = await prisma.processingRun.findFirst({
           where: { instanceId: instance.id, status: 'RUNNING' },
         });
         if (existing) {
-          console.log(`[Scheduler] Instance ${instance.name} already has a running process, skipping`);
-          continue;
+          const runAge = Date.now() - new Date(existing.startedAt).getTime();
+          if (runAge > 30 * 60 * 1000) {
+            await ProcessingService.failStaleRun(
+              existing.id,
+              (existing.steps as Record<string, string>) ?? {},
+              'Run exceeded 30-minute timeout (detected by scheduler)',
+            );
+          } else {
+            console.log(`[Scheduler] Instance ${instance.name} already has a running process, skipping`);
+            continue;
+          }
         }
 
         // Create processing run

@@ -11,6 +11,7 @@ import { insightsRoutes } from './routes/insights.routes';
 import { corpusRoutes } from './routes/corpus.routes';
 import { processingRoutes } from './routes/processing.routes';
 import { startScheduler } from './scheduler';
+import { ProcessingService } from './services/processing.service';
 
 const app = express();
 
@@ -44,8 +45,9 @@ app.use('/api/instances', processingRoutes);
 app.use(errorHandler);
 
 if (env.NODE_ENV !== 'test') {
-  app.listen(Number(env.PORT), () => {
+  app.listen(Number(env.PORT), async () => {
     console.log(`Intelligence Hub API running on port ${env.PORT}`);
+    await ProcessingService.recoverStaleRuns();
     startScheduler();
   });
 }
