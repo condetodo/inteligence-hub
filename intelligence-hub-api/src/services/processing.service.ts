@@ -36,12 +36,27 @@ export class ProcessingService {
     });
     if (staleRuns.length === 0) return;
     console.log(`[ProcessingService] Found ${staleRuns.length} stale run(s) from previous session, recovering...`);
+
+    // Collect unique instanceIds to re-trigger after cleanup
+    const instanceIds = new Set<string>();
+
     for (const run of staleRuns) {
       await ProcessingService.failStaleRun(
         run.id,
         (run.steps as Record<string, string>) ?? {},
         'Server restarted while run was in progress',
       );
+      instanceIds.add(run.instanceId);
+    }
+
+    // Re-trigger processing for each affected instance
+    for (const instanceId of instanceIds) {
+      try {
+        await ProcessingService.trigger(instanceId);
+        console.log(`[ProcessingService] Auto-relaunched processing for instance ${instanceId}`);
+      } catch (e: any) {
+        console.error(`[ProcessingService] Failed to relaunch for instance ${instanceId}:`, e.message);
+      }
     }
   }
 
