@@ -14,6 +14,7 @@ const typeConfig: Record<InputType, { label: string; color: string }> = {
   LINKEDIN: { label: 'LinkedIn', color: 'bg-sky-100 text-sky-700' },
   MEETING: { label: 'Reunion', color: 'bg-indigo-100 text-indigo-700' },
   ARTICLE: { label: 'Articulo', color: 'bg-rose-100 text-rose-700' },
+  STRATEGIC_DOC: { label: 'Documento Estratégico', color: 'bg-slate-100 text-slate-700' },
 };
 
 interface Props {
