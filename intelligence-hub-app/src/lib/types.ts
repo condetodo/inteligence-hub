@@ -52,7 +52,7 @@ export interface ContentOutput {
 }
 
 // Inputs
-export type InputType = "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW" | "LINKEDIN" | "MEETING" | "ARTICLE";
+export type InputType = "WHATSAPP" | "EMAIL" | "AUDIO" | "NOTE" | "INTERVIEW" | "LINKEDIN" | "MEETING" | "ARTICLE" | "STRATEGIC_DOC";
 export type InputStatus = "PENDING" | "PROCESSED";
 
 export interface InputFile {
@@ -62,6 +62,9 @@ export interface InputFile {
   filename: string;
   content: string;
   status: InputStatus;
+  isFoundational: boolean;
+  label: string | null;
+  extractedSummary: string | null;
   uploadedAt: string;
   processedAt: string | null;
 }

@@ -56,12 +56,16 @@ const buildTikTokUserPrompt = (
   brandVoice: Record<string, unknown>,
   corpus: Record<string, unknown>,
   scriptCount: number,
+  strategicContext?: string,
 ) =>
   `VOZ DE MARCA:
 ${JSON.stringify(brandVoice, null, 2)}
 
 CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
 ${JSON.stringify(corpus, null, 2)}
+
+DOCUMENTOS ESTRATEGICOS:
+${strategicContext || 'No hay documentos estrategicos cargados.'}
 
 Genera ${scriptCount} guiones de video corto para TikTok/Reels. Responde SOLO con JSON valido.`;
 
@@ -74,13 +78,16 @@ export async function runTikTokAgent(
   brandVoice: Record<string, unknown>,
   corpus: Record<string, unknown>,
   config: { postsPerPeriod: number },
+  benchmark?: string,
+  strategicContext?: string,
+  configContext?: string,
 ): Promise<any[]> {
   const scriptCount = config.postsPerPeriod;
   console.log(`[TikTokAgent] Generating ${scriptCount} scripts for instance ${instanceId}, week ${weekNumber}/${year}`);
 
   // 1. Generate content via LLM
   const systemPrompt = buildTikTokSystemPrompt(scriptCount);
-  const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount);
+  const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount, strategicContext) + (benchmark || '') + (configContext ? '\n\n' + configContext : '');
   const result = await callOpus(systemPrompt, userPrompt) as unknown as TikTokSkillOutput;
 
   if (!result?.scripts) {

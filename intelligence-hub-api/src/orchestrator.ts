@@ -1,7 +1,7 @@
 import { prisma } from './lib/prisma';
 import { runCorpusBuilder } from './agents/corpusBuilder';
 import { runDistillationAgent } from './agents/distillation';
-import { runContentOrchestrator } from './agents/contentOrchestrator';
+import { runContentOrchestrator, ProcessingModalConfig } from './agents/contentOrchestrator';
 import { runInsightsAgent } from './agents/insights';
 import { runDistributionAgent } from './agents/distribution';
 import { getCurrentPeriodRange } from './lib/periods';
@@ -87,8 +87,12 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     await updateStep(runId, 'insights', 'running');
     console.log('\n--- Step 3: Content + Insights (parallel) ---');
 
+    // Load run config (if any) to pass to content orchestrator
+    const run = await prisma.processingRun.findUnique({ where: { id: runId } });
+    const runConfig = run?.config as ProcessingModalConfig | null;
+
     const [contentResults, insightsResult] = await Promise.all([
-      runContentOrchestrator(instanceId, weekNumber, year).catch((e) => {
+      runContentOrchestrator(instanceId, weekNumber, year, runConfig ?? undefined).catch((e) => {
         console.error('[Orchestrator] Content agent failed:', e.message);
         return null;
       }),

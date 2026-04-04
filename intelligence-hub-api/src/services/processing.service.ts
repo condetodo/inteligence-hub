@@ -60,7 +60,12 @@ export class ProcessingService {
     }
   }
 
-  static async trigger(instanceId: string) {
+  static async trigger(instanceId: string, config?: {
+    contentTypes: string[];
+    milestone?: { description: string; tone: string };
+    directives?: string;
+    platforms?: string[];
+  }) {
     const now = new Date();
     const weekNumber = getWeekNumber(now);
     const year = now.getFullYear();
@@ -87,6 +92,7 @@ export class ProcessingService {
         weekNumber,
         year,
         triggeredBy: 'MANUAL',
+        config: config ?? undefined,
         steps: {
           corpus: 'pending',
           brandVoice: 'pending',

@@ -17,8 +17,9 @@ export class InputsService {
     instanceId: string,
     data: { type: InputType; filename: string; content: string },
   ) {
+    const isFoundational = data.type === 'STRATEGIC_DOC' ? true : false;
     return prisma.inputFile.create({
-      data: { ...data, instanceId },
+      data: { ...data, instanceId, isFoundational },
     });
   }
 

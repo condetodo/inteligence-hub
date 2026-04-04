@@ -5,7 +5,8 @@ import { param } from '../lib/params';
 export class ProcessingController {
   static async trigger(req: Request, res: Response, next: NextFunction) {
     try {
-      const run = await ProcessingService.trigger(param(req.params.id));
+      const { config } = req.body ?? {};
+      const run = await ProcessingService.trigger(param(req.params.id), config);
       res.status(202).json(run);
     } catch (error) {
       next(error);
