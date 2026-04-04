@@ -8,6 +8,7 @@ export const contentRoutes = Router();
 
 const updateStatusSchema = z.object({
   status: z.enum(['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED']),
+  approvalNotes: z.string().optional(),
 });
 
 contentRoutes.use(authenticate);

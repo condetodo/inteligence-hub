@@ -29,11 +29,15 @@ export class ContentService {
     return content;
   }
 
-  static async updateStatus(instanceId: string, contentId: string, status: ContentStatus) {
+  static async updateStatus(instanceId: string, contentId: string, status: ContentStatus, approvalNotes?: string) {
     await ContentService.getById(instanceId, contentId);
+    const updateData: any = { status };
+    if (approvalNotes && (status === 'APPROVED' || status === 'PUBLISHED')) {
+      updateData.approvalNotes = approvalNotes;
+    }
     return prisma.contentOutput.update({
       where: { id: contentId },
-      data: { status },
+      data: updateData,
     });
   }
 

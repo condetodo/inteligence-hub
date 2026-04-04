@@ -23,10 +23,12 @@ export class ContentController {
 
   static async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
+      const { status, approvalNotes } = req.body;
       const content = await ContentService.updateStatus(
         param(req.params.id),
         param(req.params.contentId),
-        req.body.status,
+        status,
+        approvalNotes,
       );
       res.json(content);
     } catch (error) {
