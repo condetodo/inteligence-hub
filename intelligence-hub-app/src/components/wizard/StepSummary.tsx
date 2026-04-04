@@ -42,7 +42,7 @@ export default function StepSummary({ profile, platforms, processing, onEdit }: 
       <div className="border border-horse-gray-200 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold">Contenido</h3>
-          <button onClick={() => onEdit(1)} className="text-horse-gray-400 hover:text-horse-black transition-colors">
+          <button onClick={() => onEdit(3)} className="text-horse-gray-400 hover:text-horse-black transition-colors">
             <Pencil size={14} />
           </button>
         </div>
@@ -65,7 +65,7 @@ export default function StepSummary({ profile, platforms, processing, onEdit }: 
       <div className="border border-horse-gray-200 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold">Procesamiento</h3>
-          <button onClick={() => onEdit(2)} className="text-horse-gray-400 hover:text-horse-black transition-colors">
+          <button onClick={() => onEdit(4)} className="text-horse-gray-400 hover:text-horse-black transition-colors">
             <Pencil size={14} />
           </button>
         </div>
