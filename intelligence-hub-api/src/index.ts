@@ -10,6 +10,7 @@ import { contentRoutes } from './routes/content.routes';
 import { insightsRoutes } from './routes/insights.routes';
 import { corpusRoutes } from './routes/corpus.routes';
 import { processingRoutes } from './routes/processing.routes';
+import { agentPromptConfigRoutes } from './routes/agentPromptConfig.routes';
 import { startScheduler } from './scheduler';
 import { ProcessingService } from './services/processing.service';
 
@@ -40,6 +41,7 @@ app.use('/api/instances', contentRoutes);
 app.use('/api/instances', insightsRoutes);
 app.use('/api/instances', corpusRoutes);
 app.use('/api/instances', processingRoutes);
+app.use('/api/instances', agentPromptConfigRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
