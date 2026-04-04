@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ContentOutput, Variant } from '@/lib/types';
 import PlatformBadge from '@/components/ui/PlatformBadge';
 import { Check, X, Send } from 'lucide-react';
@@ -7,7 +8,7 @@ import { Check, X, Send } from 'lucide-react';
 interface Props {
   item: ContentOutput;
   siblings?: ContentOutput[];
-  onApprove?: (id: string) => void;
+  onApprove?: (id: string, approvalNotes?: string) => void;
   onReject?: (id: string) => void;
   onSelectVariant?: (variant: Variant, groupItems: ContentOutput[]) => void;
   onClick?: (item: ContentOutput) => void;
@@ -20,16 +21,66 @@ const typeLabels: Record<string, string> = {
   ARTICLE: 'Articulo',
 };
 
+function ConsistencyBadge({ score, notes }: { score: number; notes: string | null }) {
+  const color =
+    score >= 7
+      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+      : score >= 5
+        ? 'bg-amber-50 text-amber-600 border-amber-200'
+        : 'bg-red-50 text-red-600 border-red-200';
+
+  return (
+    <div
+      className={`flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded border ${color}`}
+      title={notes || ''}
+    >
+      BV: {score.toFixed(1)}
+    </div>
+  );
+}
+
 export default function ContentCard({ item, siblings, onApprove, onReject, onSelectVariant, onClick }: Props) {
   const variants: Variant[] = ['A', 'B', 'C'];
   const hasVariants = siblings && siblings.length > 1;
+
+  const [showApprovalNotes, setShowApprovalNotes] = useState(false);
+  const [approvalNotes, setApprovalNotes] = useState('');
+
+  const isReviewApprove = item.status === 'REVIEW';
+
+  const handleApproveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isReviewApprove && !showApprovalNotes) {
+      setShowApprovalNotes(true);
+      return;
+    }
+    onApprove?.(item.id);
+  };
+
+  const handleConfirmApproval = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onApprove?.(item.id, approvalNotes || undefined);
+    setShowApprovalNotes(false);
+    setApprovalNotes('');
+  };
+
+  const handleCancelApproval = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowApprovalNotes(false);
+    setApprovalNotes('');
+  };
 
   return (
     <div
       onClick={() => onClick?.(item)}
       className="bg-white border border-horse-gray-200 rounded-[10px] p-3.5 cursor-pointer transition-all hover:border-horse-gray-300 hover:shadow-md hover:-translate-y-px"
     >
-      <PlatformBadge platform={item.platform} />
+      <div className="flex items-center justify-between gap-2">
+        <PlatformBadge platform={item.platform} />
+        {item.consistencyScore !== null && item.consistencyScore !== undefined && (
+          <ConsistencyBadge score={item.consistencyScore} notes={item.consistencyNotes} />
+        )}
+      </div>
 
       {hasVariants && (
         <div className="flex gap-1 mt-2 mb-2">
@@ -63,16 +114,16 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
         <div className="flex gap-1.5">
           {item.status === 'DRAFT' && onApprove && (
             <button
-              onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
+              onClick={handleApproveClick}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-blue-400 hover:text-blue-400 hover:bg-blue-50 transition-colors"
-              title="Enviar a revisión"
+              title="Enviar a revision"
             >
               <Check size={14} />
             </button>
           )}
           {item.status === 'REVIEW' && onApprove && (
             <button
-              onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
+              onClick={handleApproveClick}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors"
               title="Aprobar"
             >
@@ -83,14 +134,14 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
             <button
               onClick={(e) => { e.stopPropagation(); onReject(item.id); }}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-red-400 hover:text-red-400 hover:bg-red-50 transition-colors"
-              title="Volver atrás"
+              title="Volver atras"
             >
               <X size={14} />
             </button>
           )}
           {item.status === 'APPROVED' && onApprove && (
             <button
-              onClick={(e) => { e.stopPropagation(); onApprove(item.id); }}
+              onClick={handleApproveClick}
               className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-horse-black hover:text-horse-black hover:bg-horse-gray-100 transition-colors"
               title="Marcar como publicado"
             >
@@ -104,6 +155,32 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
           )}
         </div>
       </div>
+
+      {showApprovalNotes && (
+        <div className="mt-3 pt-3 border-t border-horse-gray-200" onClick={(e) => e.stopPropagation()}>
+          <textarea
+            value={approvalNotes}
+            onChange={(e) => setApprovalNotes(e.target.value)}
+            placeholder="Notas de aprobacion (opcional)..."
+            className="w-full text-xs bg-horse-gray-50 border border-horse-gray-200 rounded-lg px-3 py-2 text-horse-dark placeholder:text-horse-gray-400 focus:outline-none focus:border-horse-gray-300 resize-none"
+            rows={2}
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={handleCancelApproval}
+              className="text-[11px] font-medium text-horse-gray-400 hover:text-horse-gray-600 px-2.5 py-1 rounded-md transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleConfirmApproval}
+              className="text-[11px] font-medium text-white bg-horse-black hover:bg-horse-dark px-3 py-1 rounded-md transition-colors"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

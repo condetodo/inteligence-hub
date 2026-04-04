@@ -48,6 +48,9 @@ export interface ContentOutput {
   variant: Variant;
   status: ContentStatus;
   engagement: Record<string, number> | null;
+  approvalNotes: string | null;
+  consistencyScore: number | null;
+  consistencyNotes: string | null;
   createdAt: string;
 }
 

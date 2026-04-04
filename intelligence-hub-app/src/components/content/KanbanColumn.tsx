@@ -13,7 +13,7 @@ interface Props {
   status: ContentStatus;
   items: ContentOutput[];
   allItems: ContentOutput[];
-  onApprove?: (id: string) => void;
+  onApprove?: (id: string, approvalNotes?: string) => void;
   onReject?: (id: string) => void;
   onSelectVariant?: (variant: Variant, groupItems: ContentOutput[]) => void;
   onCardClick?: (item: ContentOutput) => void;

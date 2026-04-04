@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { ContentOutput, ContentStatus, Platform, Variant, ProcessingRun } from '@/lib/types';
+import { ContentOutput, ContentStatus, Instance, Platform, Variant, ProcessingRun } from '@/lib/types';
 import { getCurrentWeek } from '@/lib/weeks';
 import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
@@ -23,6 +23,7 @@ export default function ContentPage() {
   const [latestRun, setLatestRun] = useState<ProcessingRun | null>(null);
   const [selectedItem, setSelectedItem] = useState<ContentOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [platforms, setPlatforms] = useState<{ platform: string; enabled: boolean; postsPerPeriod: number }[]>([]);
 
   const fetchContent = useCallback(async () => {
     setLoading(true);
@@ -48,10 +49,24 @@ export default function ContentPage() {
 
   useEffect(() => { fetchContent(); }, [fetchContent]);
 
-  const handleStatusChange = async (contentId: string, newStatus: ContentStatus) => {
+  useEffect(() => {
+    api.get<Instance>(`/instances/${id}`).then((inst) => {
+      setPlatforms(
+        (inst.platformConfigs || []).map((pc) => ({
+          platform: pc.platform,
+          enabled: pc.enabled,
+          postsPerPeriod: pc.postsPerPeriod,
+        }))
+      );
+    }).catch(() => {});
+  }, [id]);
+
+  const handleStatusChange = async (contentId: string, newStatus: ContentStatus, approvalNotes?: string) => {
     try {
-      await api.patch(`/instances/${id}/content/${contentId}`, { status: newStatus });
-      setItems((prev) => prev.map((i) => i.id === contentId ? { ...i, status: newStatus } : i));
+      const body: Record<string, unknown> = { status: newStatus };
+      if (approvalNotes) body.approvalNotes = approvalNotes;
+      await api.patch(`/instances/${id}/content/${contentId}`, body);
+      setItems((prev) => prev.map((i) => i.id === contentId ? { ...i, status: newStatus, ...(approvalNotes ? { approvalNotes } : {}) } : i));
     } catch {
       toast.error('Error al actualizar estado');
     }
@@ -68,11 +83,11 @@ export default function ContentPage() {
     APPROVED: 'REVIEW',
   };
 
-  const handleAdvance = (contentId: string) => {
+  const handleAdvance = (contentId: string, approvalNotes?: string) => {
     const item = items.find((i) => i.id === contentId);
     if (!item) return;
     const next = nextStatus[item.status];
-    if (next) handleStatusChange(contentId, next);
+    if (next) handleStatusChange(contentId, next, approvalNotes);
   };
 
   const handleReject = (contentId: string) => {
@@ -92,7 +107,7 @@ export default function ContentPage() {
 
   return (
     <div>
-      <ProcessingBanner run={latestRun} contentCount={items.length} />
+      <ProcessingBanner run={latestRun} contentCount={items.length} instanceId={id} platforms={platforms} onProcessingStarted={fetchContent} />
       <StatsBar counts={counts} />
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-3">
