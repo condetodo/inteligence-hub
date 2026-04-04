@@ -56,6 +56,7 @@ export function startScheduler() {
               brandVoice: 'pending',
               content: 'pending',
               insights: 'pending',
+              consistency: 'pending',
               distribution: 'pending',
             },
           },

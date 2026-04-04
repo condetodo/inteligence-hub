@@ -98,6 +98,7 @@ export class ProcessingService {
           brandVoice: 'pending',
           content: 'pending',
           insights: 'pending',
+          consistency: 'pending',
           distribution: 'pending',
         },
       },

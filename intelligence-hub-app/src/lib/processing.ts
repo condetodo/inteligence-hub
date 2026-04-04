@@ -1,12 +1,13 @@
 import { StepStatus } from "./types";
 
-export const STEP_ORDER = ["corpus", "distillation", "content", "insights", "distribution"] as const;
+export const STEP_ORDER = ["corpus", "distillation", "content", "insights", "consistency", "distribution"] as const;
 
 export const STEP_LABELS: Record<string, string> = {
   corpus: "Corpus",
   distillation: "Destilación",
   content: "Contenido",
   insights: "Insights",
+  consistency: "Consistencia",
   distribution: "Distribución",
   // Backward compat with existing runs
   brandVoice: "Brand Voice",

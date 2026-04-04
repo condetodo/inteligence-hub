@@ -4,6 +4,7 @@ import { runDistillationAgent } from './agents/distillation';
 import { runContentOrchestrator, ProcessingModalConfig } from './agents/contentOrchestrator';
 import { runInsightsAgent } from './agents/insights';
 import { runDistributionAgent } from './agents/distribution';
+import { runConsistencyChecker } from './agents/consistencyChecker';
 import { getCurrentPeriodRange } from './lib/periods';
 
 async function updateStep(runId: string, step: string, status: string) {
@@ -104,6 +105,17 @@ export async function runOrchestrator(instanceId: string, runId: string) {
 
     await updateStep(runId, 'content', contentResults ? 'completed' : 'failed');
     await updateStep(runId, 'insights', insightsResult ? 'completed' : 'failed');
+
+    // Step 3.5: Consistency Check (Sonnet)
+    await updateStep(runId, 'consistency', 'running');
+    console.log('\n--- Step 3.5: Consistency Check ---');
+    try {
+      await runConsistencyChecker(instanceId, weekNumber, year);
+      await updateStep(runId, 'consistency', 'completed');
+    } catch (e) {
+      console.error('[Orchestrator] Consistency checker failed:', e instanceof Error ? e.message : e);
+      await updateStep(runId, 'consistency', 'failed');
+    }
 
     // Step 4: Distribution (Sonnet)
     await updateStep(runId, 'distribution', 'running');
