@@ -27,6 +27,7 @@ enum InputType {
   LINKEDIN
   MEETING
   ARTICLE
+  STRATEGIC_DOC
 }
 
 enum InputStatus {
@@ -102,6 +103,7 @@ model Instance {
   runs            ProcessingRun[]
   platformConfigs        InstancePlatformConfig[]
   brandVoiceSnapshots    BrandVoiceSnapshot[]
+  agentConfigs           AgentPromptConfig[]
 }
 
 model InstancePlatformConfig {
@@ -112,6 +114,20 @@ model InstancePlatformConfig {
   enabled          Boolean  @default(true)
   postsPerPeriod   Int      @default(3)
   threadsPerPeriod Int?
+
+  @@unique([instanceId, platform])
+}
+
+model AgentPromptConfig {
+  id                String   @id @default(cuid())
+  instance          Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId        String
+  platform          Platform
+  styleSliders      Json     @default("{\"formal\": 0.5, \"technical\": 0.5, \"concise\": 0.5}")
+  styleInstructions String   @default("")
+  referenceExamples String   @default("")
+  restrictions      Json     @default("[]")
+  updatedAt         DateTime @updatedAt
 
   @@unique([instanceId, platform])
 }
@@ -142,6 +158,7 @@ model BrandVoice {
   contacts         Json     @default("[]")
   narratives       Json     @default("[]")
   lockedFields     Json     @default("{}")
+  staticFieldsLocked Boolean @default(true)
   updatedAt        DateTime @updatedAt
 }
 
@@ -174,6 +191,9 @@ model InputFile {
   filename    String
   content     String
   status      InputStatus @default(PENDING)
+  isFoundational Boolean  @default(false)
+  label       String?
+  extractedSummary String?
   uploadedAt  DateTime    @default(now())
   processedAt DateTime?
 }
@@ -208,6 +228,9 @@ model ContentOutput {
   imagePrompt String?
   variant     String        @default("A")
   status      ContentStatus @default(DRAFT)
+  approvalNotes    String?
+  consistencyScore Float?
+  consistencyNotes String?
   engagement  Json?
   createdAt   DateTime      @default(now())
 }
@@ -237,6 +260,7 @@ model ProcessingRun {
   year        Int
   status      RunStatus  @default(RUNNING)
   steps       Json       @default("{}")
+  config      Json?
   startedAt   DateTime   @default(now())
   completedAt DateTime?
   triggeredBy RunTrigger
