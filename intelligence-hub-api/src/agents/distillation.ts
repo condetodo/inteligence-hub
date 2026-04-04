@@ -7,11 +7,16 @@ Recibes:
 1. PERFIL BASE ACTUAL — La representacion acumulada de quien es esta persona
 2. CORPUS NUEVO — Informacion fresca extraida de inputs recientes
 3. CAMPOS BLOQUEADOS — Campos que el equipo edito manualmente y NO debes modificar
+4. CAMPOS ESTATICOS BLOQUEADOS — Si es true, los campos de identidad estatica (identity, valueProposition, audience, voiceTone, positioning, metrics, recurringTopics) estan protegidos y NO debes modificarlos. Solo puedes actualizar campos de KB dinamico (topics, contacts, narratives, insightHistory).
 
 Tu tarea es actualizar el perfil base con la nueva informacion:
 
 REGLAS:
 - NUNCA modificar campos que estan en la lista de bloqueados
+- Si CAMPOS ESTATICOS BLOQUEADOS es true:
+  - NO modificar: identity, valueProposition, audience, voiceTone, positioning, metrics, recurringTopics
+  - SOLO actualizar: topics, contacts, narratives
+  - Si detectas que el contenido semanal contradice o podria mejorar los campos estaticos, reportalo en weeklyInsight.staticSuggestions en vez de modificar directamente
 - Para temas (topics): actualizar posiciones si cambiaron, agregar nuevos, mantener existentes
 - Para contactos: agregar nuevos mencionados, actualizar frecuencia de existentes
 - Para narrativas: detectar proyectos/iniciativas activas, marcar inactivas si dejaron de mencionarse
@@ -22,10 +27,10 @@ REGLAS:
 FORMATO DE RESPUESTA (JSON estricto):
 {
   "updatedFields": {
-    "identity": "identidad actualizada (o null si no cambio o esta bloqueado)",
-    "valueProposition": "propuesta actualizada (o null si no cambio o esta bloqueado)",
-    "audience": "audiencia actualizada (o null si no cambio o esta bloqueado)",
-    "positioning": "posicionamiento actualizado (o null si no cambio o esta bloqueado)",
+    "identity": "identidad actualizada (o null si no cambio, esta bloqueado, o campos estaticos bloqueados)",
+    "valueProposition": "propuesta actualizada (o null si no cambio, esta bloqueado, o campos estaticos bloqueados)",
+    "audience": "audiencia actualizada (o null si no cambio, esta bloqueado, o campos estaticos bloqueados)",
+    "positioning": "posicionamiento actualizado (o null si no cambio, esta bloqueado, o campos estaticos bloqueados)",
     "voiceTone": { "adjectives": [], "examples": [], "antiPatterns": [] },
     "recurringTopics": ["temas recurrentes actualizados"]
   },
@@ -41,7 +46,8 @@ FORMATO DE RESPUESTA (JSON estricto):
   "weeklyInsight": {
     "summary": "resumen del insight de este periodo",
     "newPatterns": ["patron nuevo detectado"],
-    "recommendations": "recomendacion para el siguiente periodo"
+    "recommendations": "recomendacion para el siguiente periodo",
+    "staticSuggestions": ["sugerencia de cambio a campo estatico (solo si staticFieldsLocked es true y se detectaron contradicciones o mejoras)"]
   }
 }`;
 
@@ -92,6 +98,8 @@ ${JSON.stringify({
 CAMPOS BLOQUEADOS (NO modificar):
 ${JSON.stringify(Object.entries(lockedFields).filter(([, v]) => v).map(([k]) => k))}
 
+CAMPOS ESTATICOS BLOQUEADOS: ${brandVoice.staticFieldsLocked ? 'true — NO modificar campos de identidad estatica (identity, valueProposition, audience, voiceTone, positioning, metrics, recurringTopics). Solo actualizar KB dinamico (topics, contacts, narratives). Si detectas contradicciones o mejoras para campos estaticos, reportalas en weeklyInsight.staticSuggestions.' : 'false — puedes actualizar todos los campos no bloqueados.'}
+
 Actualiza el perfil base del Digital Twin con la nueva informacion.`;
 
   const result = await callOpus(DISTILLATION_SYSTEM_PROMPT, userPrompt, 8192);
@@ -128,6 +136,14 @@ Actualiza el perfil base del Digital Twin con la nueva informacion.`;
       ...currentHistory,
       { weekNumber, year, ...weeklyInsight },
     ];
+  }
+
+  // Enforce static fields protection as a safety net (even if the AI respected the prompt)
+  const staticFields = ['identity', 'valueProposition', 'audience', 'voiceTone', 'positioning', 'metrics', 'recurringTopics'];
+  if (brandVoice.staticFieldsLocked) {
+    for (const field of staticFields) {
+      delete updateData[field];
+    }
   }
 
   if (Object.keys(updateData).length > 0) {

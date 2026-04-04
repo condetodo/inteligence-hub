@@ -97,6 +97,7 @@ export interface BrandVoice {
   contacts: { name: string; company: string; context: string; frequency: string; locked?: boolean }[];
   narratives: { name: string; status: string; context: string; startedWeek?: string; locked?: boolean }[];
   lockedFields: Record<string, boolean>;
+  staticFieldsLocked: boolean;
   updatedAt: string;
 }
 
