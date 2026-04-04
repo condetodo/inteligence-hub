@@ -67,15 +67,24 @@ const buildLinkedInUserPrompt = (
   corpus: Record<string, unknown>,
   postCount: number,
   strategicContext?: string,
+  configContext?: string,
+  benchmark?: string,
+  styleContext?: string,
 ) =>
-  `VOZ DE MARCA:
+  `BRAND VOICE (identidad fija):
 ${JSON.stringify(brandVoice, null, 2)}
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+CORPUS SEMANAL:
 ${JSON.stringify(corpus, null, 2)}
 
 DOCUMENTOS ESTRATEGICOS:
 ${strategicContext || 'No hay documentos estrategicos cargados.'}
+
+${configContext || ''}
+
+${benchmark || ''}
+
+${styleContext || ''}
 
 Genera ${postCount} publicaciones de LinkedIn con 3 variantes cada una. Responde SOLO con JSON valido.`;
 
@@ -91,13 +100,14 @@ export async function runLinkedInAgent(
   benchmark?: string,
   strategicContext?: string,
   configContext?: string,
+  styleContext?: string,
 ): Promise<any[]> {
   const postCount = config.postsPerPeriod;
   console.log(`[LinkedInAgent] Generating ${postCount} posts for instance ${instanceId}, week ${weekNumber}/${year}`);
 
   // 1. Generate content via LLM
   const systemPrompt = buildLinkedInSystemPrompt(postCount);
-  const userPrompt = buildLinkedInUserPrompt(brandVoice, corpus, postCount, strategicContext) + (benchmark || '') + (configContext ? '\n\n' + configContext : '');
+  const userPrompt = buildLinkedInUserPrompt(brandVoice, corpus, postCount, strategicContext, configContext, benchmark, styleContext);
   const result = await callOpus(systemPrompt, userPrompt) as unknown as LinkedInSkillOutput;
 
   if (!result?.posts) {

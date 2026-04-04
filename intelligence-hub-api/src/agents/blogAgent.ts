@@ -65,15 +65,24 @@ const buildBlogUserPrompt = (
   corpus: Record<string, unknown>,
   articleCount: number,
   strategicContext?: string,
+  configContext?: string,
+  benchmark?: string,
+  styleContext?: string,
 ) =>
-  `VOZ DE MARCA:
+  `BRAND VOICE (identidad fija):
 ${JSON.stringify(brandVoice, null, 2)}
 
-CORPUS SEMANAL (temas, decisiones, preocupaciones, oportunidades):
+CORPUS SEMANAL:
 ${JSON.stringify(corpus, null, 2)}
 
 DOCUMENTOS ESTRATEGICOS:
 ${strategicContext || 'No hay documentos estrategicos cargados.'}
+
+${configContext || ''}
+
+${benchmark || ''}
+
+${styleContext || ''}
 
 Genera ${articleCount} articulo${articleCount !== 1 ? 's' : ''} de blog completo${articleCount !== 1 ? 's' : ''}. Responde SOLO con JSON valido.`;
 
@@ -89,13 +98,14 @@ export async function runBlogAgent(
   benchmark?: string,
   strategicContext?: string,
   configContext?: string,
+  styleContext?: string,
 ): Promise<any[]> {
   const articleCount = config.postsPerPeriod;
   console.log(`[BlogAgent] Generating ${articleCount} articles for instance ${instanceId}, week ${weekNumber}/${year}`);
 
   // 1. Generate content via LLM (blog uses higher maxTokens)
   const systemPrompt = buildBlogSystemPrompt(articleCount);
-  const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount, strategicContext) + (benchmark || '') + (configContext ? '\n\n' + configContext : '');
+  const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount, strategicContext, configContext, benchmark, styleContext);
   const result = await callOpus(systemPrompt, userPrompt, 12000) as unknown as BlogSkillOutput;
 
   if (!result?.article) {

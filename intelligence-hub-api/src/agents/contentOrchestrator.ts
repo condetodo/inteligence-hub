@@ -205,6 +205,18 @@ export async function runContentOrchestrator(
     }
   }
 
+  // ── Load agent style configs per platform ─────────────────────────
+  const styleByPlatform: Record<string, string> = {};
+  for (const platform of enabledPlatforms) {
+    const agentConfig = await prisma.agentPromptConfig.findUnique({
+      where: { instanceId_platform: { instanceId, platform } },
+    });
+    styleByPlatform[platform] = formatAgentConfig(agentConfig);
+    if (agentConfig) {
+      console.log(`[ContentOrchestrator] Loaded agent style config for ${platform}`);
+    }
+  }
+
   // ── Dispatch enabled agents in parallel ────────────────────────────
 
   const getConfig = (platform: string) =>
@@ -218,7 +230,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runLinkedInAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: linkedInConfig.postsPerPeriod,
-      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined).catch((e) => {
+      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined, styleByPlatform['LINKEDIN'] || undefined).catch((e) => {
         console.error('[ContentOrchestrator] LinkedIn failed:', e.message);
         return [];
       }),
@@ -232,7 +244,7 @@ export async function runContentOrchestrator(
       runXAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: xConfig.postsPerPeriod,
         threadsPerPeriod: xConfig.threadsPerPeriod ?? 1,
-      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined).catch((e) => {
+      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined, styleByPlatform['X'] || undefined).catch((e) => {
         console.error('[ContentOrchestrator] X failed:', e.message);
         return [];
       }),
@@ -245,7 +257,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runTikTokAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: tiktokConfig.postsPerPeriod,
-      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined).catch((e) => {
+      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined, styleByPlatform['TIKTOK'] || undefined).catch((e) => {
         console.error('[ContentOrchestrator] TikTok failed:', e.message);
         return [];
       }),
@@ -258,7 +270,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runBlogAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: blogConfig.postsPerPeriod,
-      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined).catch((e) => {
+      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined, styleByPlatform['BLOG'] || undefined).catch((e) => {
         console.error('[ContentOrchestrator] Blog failed:', e.message);
         return [];
       }),
