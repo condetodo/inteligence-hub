@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import { Instance } from "@/lib/types";
+import { Instance, Platform } from "@/lib/types";
 import { useInstances } from "@/contexts/InstancesContext";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { PageLoader } from "@/components/ui/Spinner";
 import StepPlatforms, { PlatformConfig } from "@/components/wizard/StepPlatforms";
+import AgentPersonalityPanel from "@/components/settings/AgentPersonalityPanel";
 
 interface SettingsForm {
   name: string;
@@ -49,6 +50,7 @@ export default function InstanceSettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [agentPlatformTab, setAgentPlatformTab] = useState<Platform>("LINKEDIN");
 
   const [form, setForm] = useState<SettingsForm>({
     name: "",
@@ -261,6 +263,49 @@ export default function InstanceSettingsPage() {
             {savingPlatforms ? "Guardando..." : "Guardar plataformas"}
           </Button>
         </div>
+      </div>
+
+      {/* Section — Personalidad del Agente */}
+      <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
+        <h2 className="text-base font-semibold text-horse-black mb-4">
+          Personalidad del Agente
+        </h2>
+        <p className="text-xs text-horse-gray-400 mb-4">
+          Configura el tono y estilo de generacion de contenido para cada plataforma.
+        </p>
+
+        {/* Platform tabs */}
+        <div className="flex gap-1 mb-5 border-b border-horse-gray-200">
+          {(["LINKEDIN", "X", "TIKTOK", "BLOG"] as Platform[]).map((p) => {
+            const labels: Record<Platform, string> = {
+              LINKEDIN: "LinkedIn",
+              X: "X",
+              TIKTOK: "TikTok",
+              BLOG: "Blog",
+            };
+            const isActive = agentPlatformTab === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setAgentPlatformTab(p)}
+                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  isActive
+                    ? "border-horse-black text-horse-black"
+                    : "border-transparent text-horse-gray-400 hover:text-horse-gray-600"
+                }`}
+              >
+                {labels[p]}
+              </button>
+            );
+          })}
+        </div>
+
+        <AgentPersonalityPanel
+          key={agentPlatformTab}
+          instanceId={id}
+          platform={agentPlatformTab}
+        />
       </div>
 
       {/* Section C — Zona de peligro */}
