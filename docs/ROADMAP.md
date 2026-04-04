@@ -1,6 +1,6 @@
 # Intelligence Hub — Roadmap
 
-> Last updated: 2026-03-26
+> Last updated: 2026-04-04
 
 ## Infrastructure
 
@@ -111,11 +111,40 @@
 
 ---
 
-## What's Next
+### Horse Workflow Evolution (2026-04-04)
+- **Status:** COMPLETED (code) — Pending DB migration + E2E testing
+- **Design doc:** `docs/plans/2026-04-04-horse-workflow-evolution-design.md`
+- **Plan file:** `docs/plans/2026-04-04-horse-workflow-evolution-plan.md`
+- **Scope:** 6 major changes to align with Horse's real workflow:
+  1. **Brand Voice static/dynamic split** — Identity fields (identity, valueProposition, audience, voiceTone, positioning, metrics) are now static and protected from AI updates. KB fields (topics, contacts, narratives) remain dynamic.
+  2. **Improved instance kick-off** — Wizard expanded to 6 steps: Profile → Brand Voice (manual) → Strategic Documents → Platforms → Processing → Summary
+  3. **Processing modal** — Click "Procesar" opens a modal to configure content type (Thought Leadership / Hitos), milestone details, weekly directives, and platform selection
+  4. **Brand Voice consistency analysis** — New Sonnet-based agent scores each draft (1-10) against the Brand Voice identity, with diversity check vs recent approved posts
+  5. **Approved content benchmark** — Agents receive up to 3 diverse approved posts as few-shot examples with anti-bias instructions ("superar, no copiar")
+  6. **Agent personality configuration** — Non-technical operator panel with style sliders (formal/conversacional, tecnico/accesible, conciso/detallado), free-text instructions, reference examples, and restrictions per platform
+- **What was implemented:**
+  - ✅ Schema: new fields on BrandVoice, InputFile, ContentOutput, ProcessingRun + new AgentPromptConfig table
+  - ✅ Distillation agent respects `staticFieldsLocked`, reports suggestions via `staticSuggestions`
+  - ✅ Strategic docs (STRATEGIC_DOC type, isFoundational flag, always in agent context)
+  - ✅ Processing config passed through pipeline to all agents
+  - ✅ Benchmark with diversity selection + approval notes
+  - ✅ Consistency checker agent integrated into pipeline (new step between content and distribution)
+  - ✅ Agent prompt config service + routes (GET/PUT per instance/platform)
+  - ✅ Brand Voice page split into Identity + Knowledge Base tabs
+  - ✅ Instance wizard expanded to 6 steps with BV manual entry + strategic docs
+  - ✅ Processing modal with content types, milestone, directives, platform selection
+  - ✅ Kanban enhancements: consistency badge + approval notes flow
+  - ✅ Agent personality panel in settings (sliders, instructions, restrictions)
+  - ✅ Strategic documents section in inputs page
+  - ✅ Unified agent context: BV + KB + corpus + strategic docs + config + benchmark + style
+- **Pending:**
+  - Run `prisma db push` or `prisma migrate dev` on production DB
+  - Full E2E testing of the complete flow
+  - Verify consistency agent produces useful scores with real data
 
-### Digital Twin — Phase 1 Remaining (Frontend UI)
-- **Status:** PENDING
-- **Scope:** Expand Brand Voice page to show new KB fields (topics+positions, contacts, narratives), add lock icons, add instance period config in settings
+---
+
+## What's Next
 
 ### Digital Twin — Phase 2: Team Operations Report
 - **Status:** DESIGNED — Not yet implemented
@@ -132,6 +161,7 @@
 3. **Audio input upload** — Upload audio files (.mp3/.m4a) with automatic transcription via Whisper API
 4. **Custom domain** — Connect production domain to Vercel
 5. **Error handling polish** — Better user feedback for 409 (already processing), timeouts, etc.
+6. **Strategic doc summary extraction** — Auto-extract summaries from strategic docs on upload using corpus builder
 
 ---
 
