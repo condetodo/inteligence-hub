@@ -10,17 +10,23 @@ interface Props {
   readOnly?: boolean;
 }
 
+const toArray = (v: unknown, separator: string | RegExp = '\n'): string[] => {
+  if (Array.isArray(v)) return v.filter((x): x is string => typeof x === 'string');
+  if (typeof v === 'string') return v.split(separator).map((s) => s.trim()).filter(Boolean);
+  return [];
+};
+
 export default function BrandVoiceForm({ data, onSave, readOnly = false }: Props) {
   const [form, setForm] = useState({
     identity: data.identity || '',
     valueProposition: data.valueProposition || '',
     audience: data.audience || '',
     voiceTone: {
-      adjectives: data.voiceTone?.adjectives || [],
-      examples: data.voiceTone?.examples || [],
-      antiPatterns: data.voiceTone?.antiPatterns || [],
+      adjectives: toArray(data.voiceTone?.adjectives, ','),
+      examples: toArray(data.voiceTone?.examples),
+      antiPatterns: toArray(data.voiceTone?.antiPatterns),
     },
-    recurringTopics: data.recurringTopics || [],
+    recurringTopics: toArray(data.recurringTopics),
     positioning: data.positioning || '',
     metrics: data.metrics || '',
   });

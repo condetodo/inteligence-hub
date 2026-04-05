@@ -115,9 +115,9 @@ export default function NewInstancePage() {
           valueProposition: brandVoice.valueProposition,
           audience: brandVoice.audience,
           voiceTone: {
-            adjectives: brandVoice.voiceTone.adjectives,
-            examples: brandVoice.voiceTone.examples,
-            antiPatterns: brandVoice.voiceTone.antiPatterns,
+            adjectives: brandVoice.voiceTone.adjectives.split(',').map((s) => s.trim()).filter(Boolean),
+            examples: brandVoice.voiceTone.examples.split('\n').map((s) => s.trim()).filter(Boolean),
+            antiPatterns: brandVoice.voiceTone.antiPatterns.split('\n').map((s) => s.trim()).filter(Boolean),
           },
           positioning: brandVoice.positioning,
           metrics: brandVoice.metrics,
