@@ -2,6 +2,7 @@ import { ContentStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { generateImage } from '../lib/nanoBanana';
+import { logUsage } from '../lib/usageLogger';
 
 export class ContentService {
   static async list(
@@ -47,6 +48,15 @@ export class ContentService {
       try {
         const img = await generateImage(content.imagePrompt);
         updateData.imageUrl = `data:${img.mimeType};base64,${img.base64}`;
+
+        await logUsage({
+          instanceId,
+          provider: 'google',
+          model: img.usage.model,
+          stepName: 'image',
+          inputTokens: img.usage.inputTokens,
+          outputTokens: img.usage.outputTokens,
+        }).catch((e) => console.error('[ContentService] Usage logging failed:', e.message));
       } catch (e: any) {
         console.error(`[ContentService] Image generation failed for ${contentId}:`, e.message);
       }
