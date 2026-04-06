@@ -13,6 +13,11 @@ const RETRY_DELAY_MS = 2000;
 export interface GeneratedImage {
   base64: string;
   mimeType: string;
+  usage: {
+    inputTokens: number;
+    outputTokens: number;
+    model: string;
+  };
 }
 
 export async function generateImage(prompt: string): Promise<GeneratedImage> {
@@ -42,9 +47,16 @@ Image description: ${prompt}`;
         throw new Error('No image generated: no inline data in response');
       }
 
+      const usageMetadata = response.usageMetadata;
+
       return {
         base64: imagePart.inlineData.data,
         mimeType: imagePart.inlineData.mimeType || 'image/png',
+        usage: {
+          inputTokens: usageMetadata?.promptTokenCount ?? 0,
+          outputTokens: usageMetadata?.candidatesTokenCount ?? 0,
+          model: 'gemini-3.1-flash-image-preview',
+        },
       };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
