@@ -37,7 +37,7 @@ const stepLabels: Record<string, string> = {
   image: 'Image Gen',
 };
 
-function SummaryCard({ icon: Icon, label, value, sub }: { icon: any; label: string; value: string; sub?: string }) {
+function SummaryCard({ icon: Icon, label, value, sub }: { icon: React.ElementType; label: string; value: string; sub?: string }) {
   return (
     <div className="bg-white border border-horse-gray-200 rounded-xl p-5">
       <div className="flex items-center gap-2 text-horse-gray-400 text-xs font-medium mb-2">
