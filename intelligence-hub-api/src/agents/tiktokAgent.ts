@@ -1,5 +1,6 @@
 import { callOpus } from '../lib/claude';
 import { prisma } from '../lib/prisma';
+import { logUsage } from '../lib/usageLogger';
 
 // --- Types ---
 
@@ -91,6 +92,7 @@ export async function runTikTokAgent(
   strategicContext?: string,
   configContext?: string,
   styleContext?: string,
+  runId?: string,
 ): Promise<any[]> {
   const scriptCount = config.postsPerPeriod;
   console.log(`[TikTokAgent] Generating ${scriptCount} scripts for instance ${instanceId}, week ${weekNumber}/${year}`);
@@ -98,7 +100,19 @@ export async function runTikTokAgent(
   // 1. Generate content via LLM
   const systemPrompt = buildTikTokSystemPrompt(scriptCount);
   const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount, strategicContext, configContext, benchmark, styleContext);
-  const result = await callOpus(systemPrompt, userPrompt) as unknown as TikTokSkillOutput;
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: TikTokSkillOutput; usage: any };
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'tiktok',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[TikTokAgent] Usage logging failed:', e.message));
+  }
 
   if (!result?.scripts) {
     console.error('[TikTokAgent] No scripts returned from LLM');

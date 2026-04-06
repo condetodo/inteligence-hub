@@ -1,5 +1,6 @@
 import { callOpus } from '../lib/claude';
 import { prisma } from '../lib/prisma';
+import { logUsage } from '../lib/usageLogger';
 
 // --- Types ---
 
@@ -100,6 +101,7 @@ export async function runLinkedInAgent(
   strategicContext?: string,
   configContext?: string,
   styleContext?: string,
+  runId?: string,
 ): Promise<any[]> {
   const postCount = config.postsPerPeriod;
   console.log(`[LinkedInAgent] Generating ${postCount} posts for instance ${instanceId}, week ${weekNumber}/${year}`);
@@ -107,7 +109,19 @@ export async function runLinkedInAgent(
   // 1. Generate content via LLM
   const systemPrompt = buildLinkedInSystemPrompt(postCount);
   const userPrompt = buildLinkedInUserPrompt(brandVoice, corpus, postCount, strategicContext, configContext, benchmark, styleContext);
-  const result = await callOpus(systemPrompt, userPrompt) as unknown as LinkedInSkillOutput;
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: LinkedInSkillOutput; usage: any };
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'linkedin',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[LinkedInAgent] Usage logging failed:', e.message));
+  }
 
   if (!result?.posts) {
     console.error('[LinkedInAgent] No posts returned from LLM');

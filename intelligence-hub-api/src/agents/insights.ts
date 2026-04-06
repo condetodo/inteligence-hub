@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { callOpus } from '../lib/claude';
+import { logUsage } from '../lib/usageLogger';
 
 const INSIGHTS_SYSTEM_PROMPT = `Eres un analista de inteligencia de negocios experto. Generas reportes semanales profundos y accionables para lideres empresariales.
 
@@ -30,7 +31,7 @@ FORMATO DE RESPUESTA (JSON estricto):
   "recommendations": "3-5 recomendaciones concretas y accionables para la proxima semana."
 }`;
 
-export async function runInsightsAgent(instanceId: string, weekNumber: number, year: number) {
+export async function runInsightsAgent(instanceId: string, weekNumber: number, year: number, runId?: string) {
   console.log(`[InsightsAgent] Generating insights for instance ${instanceId}, week ${weekNumber}/${year}`);
 
   const brandVoice = await prisma.brandVoice.findUnique({ where: { instanceId } });
@@ -79,7 +80,19 @@ ${JSON.stringify(recentCorpuses.map((c) => ({
 
 Genera el reporte de inteligencia. Usa la memoria activa para detectar tendencias y cambios.`;
 
-  const result = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt);
+  const { data: result, usage } = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt);
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'insights',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[InsightsAgent] Usage logging failed:', e.message));
+  }
 
   // Save insight report
   const report = await prisma.insightReport.upsert({

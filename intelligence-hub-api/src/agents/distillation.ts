@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { callOpus } from '../lib/claude';
+import { logUsage } from '../lib/usageLogger';
 
 const DISTILLATION_SYSTEM_PROMPT = `Eres un analista de inteligencia personal experto. Tu trabajo es actualizar el perfil base de un Digital Twin (representacion digital de un CEO o lider) basandote en nuevos datos semanales.
 
@@ -51,7 +52,7 @@ FORMATO DE RESPUESTA (JSON estricto):
   }
 }`;
 
-export async function runDistillationAgent(instanceId: string, weekNumber: number, year: number) {
+export async function runDistillationAgent(instanceId: string, weekNumber: number, year: number, runId?: string) {
   console.log(`[Distillation] Updating KB for instance ${instanceId}, period ${weekNumber}/${year}`);
 
   const brandVoice = await prisma.brandVoice.findUnique({ where: { instanceId } });
@@ -102,7 +103,19 @@ CAMPOS ESTATICOS BLOQUEADOS: ${brandVoice.staticFieldsLocked ? 'true — NO modi
 
 Actualiza el perfil base del Digital Twin con la nueva informacion.`;
 
-  const result = await callOpus(DISTILLATION_SYSTEM_PROMPT, userPrompt, 8192);
+  const { data: result, usage } = await callOpus(DISTILLATION_SYSTEM_PROMPT, userPrompt, 8192);
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'distillation',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[Distillation] Usage logging failed:', e.message));
+  }
 
   // Build update data, respecting locked fields
   const updateData: Record<string, any> = {};

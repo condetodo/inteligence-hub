@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { callOpus } from '../lib/claude';
+import { logUsage } from '../lib/usageLogger';
 
 const CORPUS_SYSTEM_PROMPT = `Eres un analista de comunicaciones experto. Tu trabajo es procesar conversaciones, emails y notas en bruto y extraer informacion estructurada.
 
@@ -45,6 +46,7 @@ export async function runCorpusBuilder(
   year: number,
   periodStart: Date,
   periodEnd: Date,
+  runId?: string,
 ) {
   console.log(`[CorpusBuilder] Processing inputs for instance ${instanceId}, period ${weekNumber}/${year}`);
 
@@ -78,7 +80,19 @@ export async function runCorpusBuilder(
 
   const userPrompt = `Procesa los siguientes ${allInputs.length} inputs de este periodo y extrae informacion estructurada:\n\n${inputTexts}`;
 
-  const result = await callOpus(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
+  const { data: result, usage } = await callOpus(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'corpus',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[CorpusBuilder] Usage logging failed:', e.message));
+  }
 
   const corpus = await prisma.weeklyCorpus.upsert({
     where: {

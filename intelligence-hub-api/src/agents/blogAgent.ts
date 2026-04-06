@@ -1,5 +1,6 @@
 import { callOpus } from '../lib/claude';
 import { prisma } from '../lib/prisma';
+import { logUsage } from '../lib/usageLogger';
 
 // --- Types ---
 
@@ -98,6 +99,7 @@ export async function runBlogAgent(
   strategicContext?: string,
   configContext?: string,
   styleContext?: string,
+  runId?: string,
 ): Promise<any[]> {
   const articleCount = config.postsPerPeriod;
   console.log(`[BlogAgent] Generating ${articleCount} articles for instance ${instanceId}, week ${weekNumber}/${year}`);
@@ -105,7 +107,19 @@ export async function runBlogAgent(
   // 1. Generate content via LLM (blog uses higher maxTokens)
   const systemPrompt = buildBlogSystemPrompt(articleCount);
   const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount, strategicContext, configContext, benchmark, styleContext);
-  const result = await callOpus(systemPrompt, userPrompt, 12000) as unknown as BlogSkillOutput;
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt, 12000) as unknown as { data: BlogSkillOutput; usage: any };
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'blog',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[BlogAgent] Usage logging failed:', e.message));
+  }
 
   if (!result?.article) {
     console.error('[BlogAgent] No article returned from LLM');

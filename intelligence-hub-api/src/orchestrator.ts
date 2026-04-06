@@ -36,7 +36,7 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     // Step 1: Corpus Builder (Sonnet)
     await updateStep(runId, 'corpus', 'running');
     console.log('\n--- Step 1: Corpus Builder ---');
-    const newCorpus = await runCorpusBuilder(instanceId, weekNumber, year, period.start, period.end);
+    const newCorpus = await runCorpusBuilder(instanceId, weekNumber, year, period.start, period.end, runId);
 
     const existingCorpus = !newCorpus ? await prisma.weeklyCorpus.findUnique({
       where: { instanceId_weekNumber_year: { instanceId, weekNumber, year } },
@@ -56,7 +56,7 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     // Step 2: Distillation (Opus) — replaces old BrandVoice agent
     await updateStep(runId, 'distillation', 'running');
     console.log('\n--- Step 2: Distillation (KB Update) ---');
-    await runDistillationAgent(instanceId, weekNumber, year);
+    await runDistillationAgent(instanceId, weekNumber, year, runId);
     await updateStep(runId, 'distillation', 'completed');
 
     // Step 2.5: Capture Brand Voice snapshot
@@ -93,11 +93,11 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     const runConfig = run?.config as ProcessingModalConfig | null;
 
     const [contentResults, insightsResult] = await Promise.all([
-      runContentOrchestrator(instanceId, weekNumber, year, runConfig ?? undefined).catch((e) => {
+      runContentOrchestrator(instanceId, weekNumber, year, runConfig ?? undefined, runId).catch((e) => {
         console.error('[Orchestrator] Content agent failed:', e.message);
         return null;
       }),
-      runInsightsAgent(instanceId, weekNumber, year).catch((e) => {
+      runInsightsAgent(instanceId, weekNumber, year, runId).catch((e) => {
         console.error('[Orchestrator] Insights agent failed:', e.message);
         return null;
       }),
@@ -110,7 +110,7 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     await updateStep(runId, 'consistency', 'running');
     console.log('\n--- Step 3.5: Consistency Check ---');
     try {
-      await runConsistencyChecker(instanceId, weekNumber, year);
+      await runConsistencyChecker(instanceId, weekNumber, year, runId);
       await updateStep(runId, 'consistency', 'completed');
     } catch (e) {
       console.error('[Orchestrator] Consistency checker failed:', e instanceof Error ? e.message : e);
@@ -120,7 +120,7 @@ export async function runOrchestrator(instanceId: string, runId: string) {
     // Step 4: Distribution (Sonnet)
     await updateStep(runId, 'distribution', 'running');
     console.log('\n--- Step 4: Distribution ---');
-    await runDistributionAgent(instanceId, weekNumber, year);
+    await runDistributionAgent(instanceId, weekNumber, year, runId);
     await updateStep(runId, 'distribution', 'completed');
 
     await prisma.processingRun.update({

@@ -1,5 +1,6 @@
 import { callOpus } from '../lib/claude';
 import { prisma } from '../lib/prisma';
+import { logUsage } from '../lib/usageLogger';
 
 // --- Types ---
 
@@ -100,6 +101,7 @@ export async function runXAgent(
   strategicContext?: string,
   configContext?: string,
   styleContext?: string,
+  runId?: string,
 ): Promise<any[]> {
   const tweetCount = config.postsPerPeriod;
   const threadCount = config.threadsPerPeriod;
@@ -108,7 +110,19 @@ export async function runXAgent(
   // 1. Generate content via LLM
   const systemPrompt = buildXSystemPrompt(tweetCount, threadCount);
   const userPrompt = buildXUserPrompt(brandVoice, corpus, tweetCount, threadCount, strategicContext, configContext, benchmark, styleContext);
-  const result = await callOpus(systemPrompt, userPrompt) as unknown as XSkillOutput;
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: XSkillOutput; usage: any };
+
+  if (usage && runId) {
+    await logUsage({
+      instanceId,
+      processingRunId: runId,
+      provider: 'anthropic',
+      model: usage.model,
+      stepName: 'x',
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+    }).catch((e) => console.error('[XAgent] Usage logging failed:', e.message));
+  }
 
   if (!result?.tweets && !result?.thread) {
     console.error('[XAgent] No content returned from LLM');

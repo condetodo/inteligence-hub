@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma';
 
-export async function runDistributionAgent(instanceId: string, weekNumber: number, year: number) {
+export async function runDistributionAgent(instanceId: string, weekNumber: number, year: number, runId?: string) {
   console.log(`[Distribution] Processing distribution for instance ${instanceId}, week ${weekNumber}/${year}`);
 
   // MVP: Mark all new content as DRAFT (already the default)

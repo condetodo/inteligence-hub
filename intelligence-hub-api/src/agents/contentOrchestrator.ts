@@ -85,6 +85,7 @@ export async function runContentOrchestrator(
   weekNumber: number,
   year: number,
   processingConfig?: ProcessingModalConfig,
+  runId?: string,
 ): Promise<any[]> {
   console.log(
     `[ContentOrchestrator] Generating content for instance ${instanceId}, week ${weekNumber}/${year}`,
@@ -230,7 +231,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runLinkedInAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: linkedInConfig.postsPerPeriod,
-      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined, styleByPlatform['LINKEDIN'] || undefined).catch((e) => {
+      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined, styleByPlatform['LINKEDIN'] || undefined, runId).catch((e) => {
         console.error('[ContentOrchestrator] LinkedIn failed:', e.message);
         return [];
       }),
@@ -244,7 +245,7 @@ export async function runContentOrchestrator(
       runXAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: xConfig.postsPerPeriod,
         threadsPerPeriod: xConfig.threadsPerPeriod ?? 1,
-      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined, styleByPlatform['X'] || undefined).catch((e) => {
+      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined, styleByPlatform['X'] || undefined, runId).catch((e) => {
         console.error('[ContentOrchestrator] X failed:', e.message);
         return [];
       }),
@@ -257,7 +258,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runTikTokAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: tiktokConfig.postsPerPeriod,
-      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined, styleByPlatform['TIKTOK'] || undefined).catch((e) => {
+      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined, styleByPlatform['TIKTOK'] || undefined, runId).catch((e) => {
         console.error('[ContentOrchestrator] TikTok failed:', e.message);
         return [];
       }),
@@ -270,7 +271,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runBlogAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: blogConfig.postsPerPeriod,
-      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined, styleByPlatform['BLOG'] || undefined).catch((e) => {
+      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined, styleByPlatform['BLOG'] || undefined, runId).catch((e) => {
         console.error('[ContentOrchestrator] Blog failed:', e.message);
         return [];
       }),
