@@ -5,6 +5,17 @@ const client = new Anthropic({
   apiKey: env.ANTHROPIC_API_KEY,
 });
 
+export interface ClaudeUsage {
+  inputTokens: number;
+  outputTokens: number;
+  model: string;
+}
+
+export interface ClaudeResult {
+  data: Record<string, unknown>;
+  usage: ClaudeUsage;
+}
+
 const SONNET_MODEL = 'claude-sonnet-4-5-20250929';
 const OPUS_MODEL = 'claude-opus-4-20250514';
 const MAX_RETRIES = 3;
@@ -15,7 +26,7 @@ async function callClaude(
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 4096
-): Promise<Record<string, unknown>> {
+): Promise<ClaudeResult> {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -37,7 +48,14 @@ async function callClaude(
         jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
       }
 
-      return JSON.parse(jsonText);
+      return {
+        data: JSON.parse(jsonText),
+        usage: {
+          inputTokens: response.usage.input_tokens,
+          outputTokens: response.usage.output_tokens,
+          model,
+        },
+      };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       console.error(`Claude API attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
@@ -55,7 +73,7 @@ export async function callSonnet(
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 4096
-): Promise<Record<string, unknown>> {
+): Promise<ClaudeResult> {
   return callClaude(SONNET_MODEL, systemPrompt, userPrompt, maxTokens);
 }
 
@@ -63,6 +81,6 @@ export async function callOpus(
   systemPrompt: string,
   userPrompt: string,
   maxTokens: number = 8192
-): Promise<Record<string, unknown>> {
+): Promise<ClaudeResult> {
   return callClaude(OPUS_MODEL, systemPrompt, userPrompt, maxTokens);
 }
