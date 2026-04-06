@@ -125,6 +125,39 @@ export interface ProcessingRun {
   triggeredBy: TriggerType;
 }
 
+// Costs
+export interface CostStep {
+  stepName: string;
+  provider: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+}
+
+export interface CostRun {
+  runId: string;
+  weekNumber: number;
+  startedAt: string;
+  status: RunStatus;
+  totalCost: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  steps: CostStep[];
+}
+
+export interface CostSummary {
+  totalCost: number;
+  totalRuns: number;
+  avgCostPerRun: number;
+}
+
+export interface CostData {
+  runs: CostRun[];
+  imageCosts: (CostStep & { createdAt: string })[];
+  summary: CostSummary;
+}
+
 export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
