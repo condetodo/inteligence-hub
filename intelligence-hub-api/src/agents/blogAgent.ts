@@ -1,5 +1,4 @@
 import { callOpus } from '../lib/claude';
-import { generateImage } from '../lib/nanoBanana';
 import { prisma } from '../lib/prisma';
 
 // --- Types ---
@@ -116,14 +115,6 @@ export async function runBlogAgent(
   // 2. Persist article with image generation
   const contentOutputs: any[] = [];
 
-  let imageUrl: string | null = null;
-  try {
-    const img = await generateImage(result.article.imagePrompt);
-    imageUrl = `data:${img.mimeType};base64,${img.base64}`;
-  } catch (e: any) {
-    console.error('[BlogAgent] Image generation failed:', e.message);
-  }
-
   const fullContent = result.article.sections
     .map((s: BlogSection) => s.heading ? `## ${s.heading}\n\n${s.content}` : s.content)
     .join('\n\n');
@@ -137,7 +128,6 @@ export async function runBlogAgent(
       type: 'ARTICLE',
       title: result.article.title,
       content: fullContent,
-      imageUrl,
       imagePrompt: result.article.imagePrompt,
       variant: 'A',
       status: 'DRAFT',

@@ -1,5 +1,4 @@
 import { callOpus } from '../lib/claude';
-import { generateImage } from '../lib/nanoBanana';
 import { prisma } from '../lib/prisma';
 
 // --- Types ---
@@ -141,14 +140,6 @@ export async function runXAgent(
 
   // 2b. Thread with image generation
   if (result.thread) {
-    let imageUrl: string | null = null;
-    try {
-      const img = await generateImage(result.thread.imagePrompt);
-      imageUrl = `data:${img.mimeType};base64,${img.base64}`;
-    } catch (e: any) {
-      console.error('[XAgent] Image generation failed for X thread:', e.message);
-    }
-
     const output = await prisma.contentOutput.create({
       data: {
         instanceId,
@@ -158,7 +149,6 @@ export async function runXAgent(
         type: 'THREAD',
         title: result.thread.title,
         content: result.thread.tweets.join('\n\n'),
-        imageUrl,
         imagePrompt: result.thread.imagePrompt,
         variant: 'A',
         status: 'DRAFT',

@@ -13,13 +13,14 @@ interface Props {
   status: ContentStatus;
   items: ContentOutput[];
   allItems: ContentOutput[];
+  loadingIds?: Set<string>;
   onApprove?: (id: string, approvalNotes?: string) => void;
   onReject?: (id: string) => void;
   onSelectVariant?: (variant: Variant, groupItems: ContentOutput[]) => void;
   onCardClick?: (item: ContentOutput) => void;
 }
 
-export default function KanbanColumn({ status, items, allItems, onApprove, onReject, onSelectVariant, onCardClick }: Props) {
+export default function KanbanColumn({ status, items, allItems, loadingIds, onApprove, onReject, onSelectVariant, onCardClick }: Props) {
   const getSiblings = (item: ContentOutput) =>
     allItems.filter((i) => i.platform === item.platform && i.title === item.title && i.status === item.status);
 
@@ -40,6 +41,7 @@ export default function KanbanColumn({ status, items, allItems, onApprove, onRej
             key={item.id}
             item={item}
             siblings={getSiblings(item)}
+            loading={loadingIds?.has(item.id)}
             onApprove={onApprove}
             onReject={onReject}
             onSelectVariant={onSelectVariant}

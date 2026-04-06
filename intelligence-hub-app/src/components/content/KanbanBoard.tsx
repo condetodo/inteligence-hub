@@ -7,13 +7,14 @@ const columns: ContentStatus[] = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'];
 
 interface Props {
   items: ContentOutput[];
+  loadingIds?: Set<string>;
   onApprove?: (id: string, approvalNotes?: string) => void;
   onReject?: (id: string) => void;
   onSelectVariant?: (variant: Variant, groupItems: ContentOutput[]) => void;
   onCardClick?: (item: ContentOutput) => void;
 }
 
-export default function KanbanBoard({ items, onApprove, onReject, onSelectVariant, onCardClick }: Props) {
+export default function KanbanBoard({ items, loadingIds, onApprove, onReject, onSelectVariant, onCardClick }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {columns.map((status) => (
@@ -22,6 +23,7 @@ export default function KanbanBoard({ items, onApprove, onReject, onSelectVarian
           status={status}
           items={items.filter((i) => i.status === status)}
           allItems={items}
+          loadingIds={loadingIds}
           onApprove={onApprove}
           onReject={onReject}
           onSelectVariant={onSelectVariant}

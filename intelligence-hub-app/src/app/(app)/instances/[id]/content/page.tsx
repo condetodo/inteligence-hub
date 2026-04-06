@@ -23,6 +23,7 @@ export default function ContentPage() {
   const [latestRun, setLatestRun] = useState<ProcessingRun | null>(null);
   const [selectedItem, setSelectedItem] = useState<ContentOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
   const [platforms, setPlatforms] = useState<{ platform: string; enabled: boolean; postsPerPeriod: number }[]>([]);
 
   const fetchContent = useCallback(async () => {
@@ -62,13 +63,16 @@ export default function ContentPage() {
   }, [id]);
 
   const handleStatusChange = async (contentId: string, newStatus: ContentStatus, approvalNotes?: string) => {
+    setLoadingIds((prev) => new Set(prev).add(contentId));
     try {
       const body: Record<string, unknown> = { status: newStatus };
       if (approvalNotes) body.approvalNotes = approvalNotes;
-      await api.patch(`/instances/${id}/content/${contentId}`, body);
-      setItems((prev) => prev.map((i) => i.id === contentId ? { ...i, status: newStatus, ...(approvalNotes ? { approvalNotes } : {}) } : i));
+      const updated = await api.patch<ContentOutput>(`/instances/${id}/content/${contentId}`, body);
+      setItems((prev) => prev.map((i) => i.id === contentId ? updated : i));
     } catch {
       toast.error('Error al actualizar estado');
+    } finally {
+      setLoadingIds((prev) => { const next = new Set(prev); next.delete(contentId); return next; });
     }
   };
 
@@ -120,6 +124,7 @@ export default function ContentPage() {
       ) : (
         <KanbanBoard
           items={items}
+          loadingIds={loadingIds}
           onApprove={handleAdvance}
           onReject={handleReject}
           onSelectVariant={handleSelectVariant}

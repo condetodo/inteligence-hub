@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { ContentOutput, Variant } from '@/lib/types';
 import PlatformBadge from '@/components/ui/PlatformBadge';
-import { Check, X, Send } from 'lucide-react';
+import { Check, X, Send, Loader2 } from 'lucide-react';
 
 interface Props {
   item: ContentOutput;
   siblings?: ContentOutput[];
+  loading?: boolean;
   onApprove?: (id: string, approvalNotes?: string) => void;
   onReject?: (id: string) => void;
   onSelectVariant?: (variant: Variant, groupItems: ContentOutput[]) => void;
@@ -39,7 +40,7 @@ function ConsistencyBadge({ score, notes }: { score: number; notes: string | nul
   );
 }
 
-export default function ContentCard({ item, siblings, onApprove, onReject, onSelectVariant, onClick }: Props) {
+export default function ContentCard({ item, siblings, loading, onApprove, onReject, onSelectVariant, onClick }: Props) {
   const variants: Variant[] = ['A', 'B', 'C'];
   const hasVariants = siblings && siblings.length > 1;
 
@@ -124,10 +125,11 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
           {item.status === 'REVIEW' && onApprove && (
             <button
               onClick={handleApproveClick}
-              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors"
-              title="Aprobar"
+              disabled={loading}
+              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={loading ? 'Generando imagen...' : 'Aprobar'}
             >
-              <Check size={14} />
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
             </button>
           )}
           {(item.status === 'REVIEW' || item.status === 'APPROVED') && onReject && (
@@ -174,9 +176,11 @@ export default function ContentCard({ item, siblings, onApprove, onReject, onSel
             </button>
             <button
               onClick={handleConfirmApproval}
-              className="text-[11px] font-medium text-white bg-horse-black hover:bg-horse-dark px-3 py-1 rounded-md transition-colors"
+              disabled={loading}
+              className="text-[11px] font-medium text-white bg-horse-black hover:bg-horse-dark px-3 py-1 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
             >
-              Confirmar
+              {loading && <Loader2 size={12} className="animate-spin" />}
+              {loading ? 'Generando imagen...' : 'Confirmar'}
             </button>
           </div>
         </div>

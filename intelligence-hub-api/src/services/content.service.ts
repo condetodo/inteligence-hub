@@ -1,6 +1,7 @@
 import { ContentStatus } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { generateImage } from '../lib/nanoBanana';
 
 export class ContentService {
   static async list(
@@ -30,11 +31,27 @@ export class ContentService {
   }
 
   static async updateStatus(instanceId: string, contentId: string, status: ContentStatus, approvalNotes?: string) {
-    await ContentService.getById(instanceId, contentId);
+    const content = await ContentService.getById(instanceId, contentId);
     const updateData: any = { status };
     if (approvalNotes && (status === 'APPROVED' || status === 'PUBLISHED')) {
       updateData.approvalNotes = approvalNotes;
     }
+
+    // Generate image on REVIEW → APPROVED transition
+    if (
+      status === 'APPROVED' &&
+      content.status === 'REVIEW' &&
+      content.imagePrompt &&
+      !content.imageUrl
+    ) {
+      try {
+        const img = await generateImage(content.imagePrompt);
+        updateData.imageUrl = `data:${img.mimeType};base64,${img.base64}`;
+      } catch (e: any) {
+        console.error(`[ContentService] Image generation failed for ${contentId}:`, e.message);
+      }
+    }
+
     return prisma.contentOutput.update({
       where: { id: contentId },
       data: updateData,

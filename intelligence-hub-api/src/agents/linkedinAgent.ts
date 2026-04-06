@@ -1,5 +1,4 @@
 import { callOpus } from '../lib/claude';
-import { generateImage } from '../lib/nanoBanana';
 import { prisma } from '../lib/prisma';
 
 // --- Types ---
@@ -123,14 +122,6 @@ export async function runLinkedInAgent(
       const v = post.variants[variant];
       if (!v) continue;
 
-      let imageUrl: string | null = null;
-      try {
-        const img = await generateImage(post.imagePrompt);
-        imageUrl = `data:${img.mimeType};base64,${img.base64}`;
-      } catch (e: any) {
-        console.error('[LinkedInAgent] Image generation failed:', e.message);
-      }
-
       const output = await prisma.contentOutput.create({
         data: {
           instanceId,
@@ -140,7 +131,6 @@ export async function runLinkedInAgent(
           type: 'POST',
           title: post.title,
           content: v.content,
-          imageUrl,
           imagePrompt: post.imagePrompt,
           variant,
           status: 'DRAFT',
