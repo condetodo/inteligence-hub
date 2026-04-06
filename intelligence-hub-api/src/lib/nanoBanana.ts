@@ -4,7 +4,7 @@ import { env } from '../config/env';
 const genAI = new GoogleGenerativeAI(env.GOOGLE_AI_API_KEY);
 
 const model = genAI.getGenerativeModel({
-  model: 'gemini-2.0-flash-exp',
+  model: 'gemini-3.1-flash-image-preview',
 });
 
 const MAX_RETRIES = 3;
