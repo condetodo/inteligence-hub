@@ -53,11 +53,8 @@ export class InstancesService {
     return instance;
   }
 
-  static async list(userId: string) {
+  static async list(_userId: string) {
     const instances = await prisma.instance.findMany({
-      where: {
-        users: { some: { userId } },
-      },
       include: {
         _count: {
           select: {
@@ -71,11 +68,10 @@ export class InstancesService {
     return instances;
   }
 
-  static async getById(userId: string, instanceId: string) {
+  static async getById(_userId: string, instanceId: string) {
     const instance = await prisma.instance.findFirst({
       where: {
         id: instanceId,
-        users: { some: { userId } },
       },
       include: { brandVoice: true, platformConfigs: true },
     });
