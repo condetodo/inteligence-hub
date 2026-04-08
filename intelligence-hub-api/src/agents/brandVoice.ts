@@ -86,7 +86,7 @@ ${JSON.stringify({
 
 Analiza si hay cambios significativos en la voz de marca y genera el insight semanal.`;
 
-  const result = await callOpus(BRAND_VOICE_SYSTEM_PROMPT, userPrompt);
+  const { data: result } = await callOpus(BRAND_VOICE_SYSTEM_PROMPT, userPrompt);
 
   // Update brand voice with new data
   const updateData: any = {};

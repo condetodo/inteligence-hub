@@ -6,7 +6,7 @@ export class CostController {
     try {
       const month = Number(req.query.month) || new Date().getMonth() + 1;
       const year = Number(req.query.year) || new Date().getFullYear();
-      const result = await CostService.getByInstance(req.params.id, month, year);
+      const result = await CostService.getByInstance(req.params.id as string, month, year);
       res.json(result);
     } catch (error) {
       next(error);
