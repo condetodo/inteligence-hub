@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { InputFile } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { BookOpen, Plus, Trash2, X } from 'lucide-react';
+import { BookOpen, Plus, Trash2, X, ChevronRight } from 'lucide-react';
 
 interface Props {
   docs: InputFile[];
@@ -32,34 +32,39 @@ export default function StrategicDocsSection({ docs, onUpload, onDelete }: Props
   };
 
   return (
-    <div className="border-l-2 border-amber-500/30 pl-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-horse-black flex items-center gap-2">
-            <BookOpen size={16} className="text-amber-500" />
-            Documentos Estrat&eacute;gicos
-          </h3>
-          <p className="text-xs text-horse-gray-400 mt-0.5">
-            Documentos fundacionales que se incluyen en cada generaci&oacute;n de contenido.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-horse-gray-200 text-xs font-medium text-horse-gray-500 hover:text-horse-black hover:border-horse-gray-300 transition-colors"
-        >
-          {showForm ? <X size={14} /> : <Plus size={14} />}
-          {showForm ? 'Cancelar' : 'Agregar'}
-        </button>
-      </div>
+    <div>
+      <p className="text-xs text-horse-gray-400 mb-6">
+        Documentos fundacionales que se incluyen en cada generación de contenido.
+      </p>
 
+      {/* CTA agregar */}
+      <button
+        onClick={() => setShowForm(!showForm)}
+        className="w-full border-2 border-dashed border-horse-gray-200 rounded-xl p-5 mb-6 flex items-center justify-between hover:border-amber-400/40 hover:bg-amber-50/30 transition-colors group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
+            {showForm ? <X size={20} className="text-amber-600" /> : <Plus size={20} className="text-amber-600" />}
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-medium text-horse-black">
+              {showForm ? 'Cancelar' : 'Agregar documento estratégico'}
+            </p>
+            <p className="text-xs text-horse-gray-400">Briefs, análisis de mercado, planes de comunicación...</p>
+          </div>
+        </div>
+        {!showForm && <ChevronRight size={20} className="text-horse-gray-300 group-hover:text-amber-500 transition-colors" />}
+      </button>
+
+      {/* Form */}
       {showForm && (
-        <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4 mb-4 space-y-3">
+        <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-4 mb-6 space-y-3">
           <div>
             <label className="block text-xs font-medium text-horse-gray-500 mb-1.5">Etiqueta</label>
             <input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="Ej: Brief de marca, An&aacute;lisis de mercado Q1..."
+              placeholder="Ej: Brief de marca, Análisis de mercado Q1..."
               className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors"
             />
           </div>
@@ -69,7 +74,7 @@ export default function StrategicDocsSection({ docs, onUpload, onDelete }: Props
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={6}
-              placeholder="Pegar el contenido del documento estrat&eacute;gico..."
+              placeholder="Pegar el contenido del documento estratégico..."
               className="w-full border border-horse-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-horse-black transition-colors resize-none"
             />
           </div>
@@ -85,28 +90,29 @@ export default function StrategicDocsSection({ docs, onUpload, onDelete }: Props
         </div>
       )}
 
+      {/* Docs list */}
       {docs.length === 0 && !showForm ? (
-        <div className="flex flex-col items-center justify-center py-10 text-horse-gray-400 text-sm">
-          <BookOpen size={28} className="mb-2 text-horse-gray-300" />
-          <p>No hay documentos estrat&eacute;gicos.</p>
-          <p className="text-xs mt-1">Agrega briefs, an&aacute;lisis de mercado o planes de comunicaci&oacute;n.</p>
+        <div className="flex flex-col items-center justify-center py-16 text-horse-gray-400 text-sm">
+          <BookOpen size={32} className="mb-3 text-horse-gray-300" />
+          <p>No hay documentos estratégicos.</p>
+          <p className="text-xs mt-1">Agrega briefs, análisis de mercado o planes de comunicación.</p>
         </div>
       ) : (
         <div className="space-y-2">
           {docs.map((doc) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between bg-white border border-horse-gray-200 rounded-lg px-4 py-3 group hover:border-horse-gray-300 transition-colors"
+              className="flex items-center justify-between bg-horse-gray-50 border border-horse-gray-200 rounded-lg px-4 py-3 group hover:border-horse-gray-300 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <BookOpen size={14} className="text-amber-500 shrink-0" />
+                <BookOpen size={16} className="text-amber-500 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-horse-black truncate">
                     {doc.label || doc.filename}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">
-                      Estrat&eacute;gico
+                      Estratégico
                     </span>
                     <span className="text-[11px] text-horse-gray-400">
                       {format(new Date(doc.uploadedAt), "d MMM yyyy", { locale: es })}
