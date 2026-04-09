@@ -6,19 +6,27 @@ import { Platform } from "@/lib/types";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 
+interface StyleSliders {
+  formal: number;
+  technical: number;
+  concise: number;
+}
+
 interface AgentConfig {
-  formalidad: number;
-  tecnicidad: number;
-  detalle: number;
+  styleSliders: StyleSliders;
   styleInstructions: string;
   referenceExamples: string;
   restrictions: string[];
 }
 
+const defaultSliders: StyleSliders = {
+  formal: 0.5,
+  technical: 0.5,
+  concise: 0.5,
+};
+
 const defaultConfig: AgentConfig = {
-  formalidad: 0.5,
-  tecnicidad: 0.5,
-  detalle: 0.5,
+  styleSliders: defaultSliders,
   styleInstructions: "",
   referenceExamples: "",
   restrictions: [],
@@ -79,7 +87,11 @@ export default function AgentPersonalityPanel({ instanceId, platform }: Props) {
       const data = await api.get<AgentConfig>(
         `/instances/${instanceId}/agent-config/${platform}`
       );
-      const merged = { ...defaultConfig, ...data };
+      const merged = {
+        ...defaultConfig,
+        ...data,
+        styleSliders: { ...defaultSliders, ...(data.styleSliders as StyleSliders) },
+      };
       setConfig(merged);
       setInitial(JSON.stringify(merged));
     } catch {
@@ -153,20 +165,20 @@ export default function AgentPersonalityPanel({ instanceId, platform }: Props) {
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-horse-gray-700">Tono y estilo</h3>
         <PersonalitySlider
-          value={config.formalidad}
-          onChange={(v) => update("formalidad", v)}
+          value={config.styleSliders.formal}
+          onChange={(v) => update("styleSliders", { ...config.styleSliders, formal: v })}
           leftLabel="Formal"
           rightLabel="Conversacional"
         />
         <PersonalitySlider
-          value={config.tecnicidad}
-          onChange={(v) => update("tecnicidad", v)}
+          value={config.styleSliders.technical}
+          onChange={(v) => update("styleSliders", { ...config.styleSliders, technical: v })}
           leftLabel="Tecnico"
           rightLabel="Accesible"
         />
         <PersonalitySlider
-          value={config.detalle}
-          onChange={(v) => update("detalle", v)}
+          value={config.styleSliders.concise}
+          onChange={(v) => update("styleSliders", { ...config.styleSliders, concise: v })}
           leftLabel="Conciso"
           rightLabel="Detallado"
         />

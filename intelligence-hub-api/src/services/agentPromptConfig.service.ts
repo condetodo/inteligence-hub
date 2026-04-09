@@ -22,10 +22,16 @@ export class AgentPromptConfigService {
       restrictions?: string[];
     },
   ) {
+    const fields: Record<string, unknown> = {};
+    if (data.styleSliders !== undefined) fields.styleSliders = data.styleSliders;
+    if (data.styleInstructions !== undefined) fields.styleInstructions = data.styleInstructions;
+    if (data.referenceExamples !== undefined) fields.referenceExamples = data.referenceExamples;
+    if (data.restrictions !== undefined) fields.restrictions = data.restrictions;
+
     return prisma.agentPromptConfig.upsert({
       where: { instanceId_platform: { instanceId, platform: platform as Platform } },
-      create: { instanceId, platform: platform as Platform, ...data },
-      update: data,
+      create: { instanceId, platform: platform as Platform, ...fields },
+      update: fields,
     });
   }
 }
