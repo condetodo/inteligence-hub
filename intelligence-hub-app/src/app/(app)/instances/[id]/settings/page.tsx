@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { Instance, Platform } from "@/lib/types";
 import { useInstances } from "@/contexts/InstancesContext";
@@ -64,7 +64,18 @@ export default function InstanceSettingsPage() {
   const { refetch } = useInstances();
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as SettingsTab) || "general";
+  const [activeTab, setActiveTabState] = useState<SettingsTab>(
+    tabs.some((t) => t.key === initialTab) ? initialTab : "general"
+  );
+
+  const setActiveTab = (tab: SettingsTab) => {
+    setActiveTabState(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url.toString());
+  };
   const [instance, setInstance] = useState<Instance | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingAll, setSavingAll] = useState(false);
@@ -192,17 +203,22 @@ export default function InstanceSettingsPage() {
         );
       }
       if (isAgentConfigsDirty) {
-        const initial = JSON.parse(initialAgentConfigs);
+        const initial = JSON.parse(initialAgentConfigs) as Record<string, AgentConfig>;
         for (const [platform, config] of Object.entries(agentConfigs)) {
           if (JSON.stringify(config) !== JSON.stringify(initial[platform])) {
             promises.push(
-              api.put(`/instances/${id}/agent-config/${platform}`, config)
+              api.put(`/instances/${id}/agent-config/${platform}`, config).then(() => {
+                setInitialAgentConfigs((prev) => {
+                  const parsed = JSON.parse(prev);
+                  parsed[platform] = config;
+                  return JSON.stringify(parsed);
+                });
+              })
             );
           }
         }
       }
       await Promise.all(promises);
-      setInitialAgentConfigs(JSON.stringify(agentConfigs));
       toast.success("Cambios guardados correctamente");
     } catch {
       toast.error("Error al guardar los cambios");
