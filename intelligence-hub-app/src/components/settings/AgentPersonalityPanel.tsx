@@ -1,9 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, KeyboardEvent } from "react";
-import { api } from "@/lib/api";
-import { Platform } from "@/lib/types";
-import { useToast } from "@/components/ui/Toast";
+import { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/Button";
 
 interface StyleSliders {
@@ -69,48 +66,18 @@ function PersonalitySlider({ value, onChange, leftLabel, rightLabel }: SliderPro
 }
 
 interface Props {
-  instanceId: string;
-  platform: Platform;
+  config: AgentConfig;
+  onChange: (config: AgentConfig) => void;
 }
 
-export default function AgentPersonalityPanel({ instanceId, platform }: Props) {
-  const toast = useToast();
-  const [config, setConfig] = useState<AgentConfig>(defaultConfig);
-  const [initial, setInitial] = useState<string>(JSON.stringify(defaultConfig));
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+export { defaultConfig, defaultSliders };
+export type { AgentConfig, StyleSliders };
+
+export default function AgentPersonalityPanel({ config, onChange }: Props) {
   const [restrictionInput, setRestrictionInput] = useState("");
 
-  const loadConfig = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.get<AgentConfig>(
-        `/instances/${instanceId}/agent-config/${platform}`
-      );
-      const merged = {
-        ...defaultConfig,
-        ...data,
-        styleSliders: { ...defaultSliders, ...(data.styleSliders as StyleSliders) },
-      };
-      setConfig(merged);
-      setInitial(JSON.stringify(merged));
-    } catch {
-      // No config yet — keep defaults
-      setConfig(defaultConfig);
-      setInitial(JSON.stringify(defaultConfig));
-    } finally {
-      setLoading(false);
-    }
-  }, [instanceId, platform]);
-
-  useEffect(() => {
-    loadConfig();
-  }, [loadConfig]);
-
-  const isDirty = JSON.stringify(config) !== initial;
-
   const update = <K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
+    onChange({ ...config, [key]: value });
   };
 
   const addRestriction = () => {
@@ -137,27 +104,6 @@ export default function AgentPersonalityPanel({ instanceId, platform }: Props) {
       addRestriction();
     }
   };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await api.put(`/instances/${instanceId}/agent-config/${platform}`, config);
-      setInitial(JSON.stringify(config));
-      toast.success("Configuracion guardada");
-    } catch {
-      toast.error("Error al guardar la configuracion");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <span className="text-sm text-horse-gray-400">Cargando...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-5">
@@ -257,11 +203,6 @@ export default function AgentPersonalityPanel({ instanceId, platform }: Props) {
           </div>
         )}
       </div>
-
-      {/* Save */}
-      <Button onClick={handleSave} disabled={!isDirty || saving}>
-        {saving ? "Guardando..." : "Guardar configuracion"}
-      </Button>
     </div>
   );
 }
