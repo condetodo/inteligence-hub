@@ -10,7 +10,14 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { PageLoader } from "@/components/ui/Spinner";
 import StepPlatforms, { PlatformConfig } from "@/components/wizard/StepPlatforms";
-import AgentPersonalityPanel from "@/components/settings/AgentPersonalityPanel";
+import AgentPersonalityPanel, {
+  defaultConfig,
+  defaultSliders,
+} from "@/components/settings/AgentPersonalityPanel";
+import type {
+  AgentConfig,
+  StyleSliders,
+} from "@/components/settings/AgentPersonalityPanel";
 
 interface SettingsForm {
   name: string;
@@ -34,6 +41,22 @@ function formFromInstance(instance: Instance): SettingsForm {
   };
 }
 
+type SettingsTab = "general" | "plataformas" | "personalidad" | "peligro";
+
+const tabs: readonly { key: SettingsTab; label: string; danger?: boolean }[] = [
+  { key: "general", label: "General" },
+  { key: "plataformas", label: "Plataformas" },
+  { key: "personalidad", label: "Personalidad" },
+  { key: "peligro", label: "Zona de peligro", danger: true },
+];
+
+const platformLabels: Record<Platform, string> = {
+  LINKEDIN: "LinkedIn",
+  X: "X",
+  TIKTOK: "TikTok",
+  BLOG: "Blog",
+};
+
 export default function InstanceSettingsPage() {
   const params = useParams();
   const router = useRouter();
@@ -41,10 +64,10 @@ export default function InstanceSettingsPage() {
   const { refetch } = useInstances();
   const toast = useToast();
 
+  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [instance, setInstance] = useState<Instance | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [savingPlatforms, setSavingPlatforms] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -70,12 +93,17 @@ export default function InstanceSettingsPage() {
     { platform: "BLOG", enabled: true, postsPerPeriod: 1, threadsPerPeriod: null },
   ];
   const [platforms, setPlatforms] = useState<PlatformConfig[]>(defaultPlatforms);
-  const [initialPlatforms, setInitialPlatforms] = useState<string>(JSON.stringify(defaultPlatforms));
+  const [initialPlatforms, setInitialPlatforms] = useState<string>(
+    JSON.stringify(defaultPlatforms)
+  );
+
+  const [agentConfigs, setAgentConfigs] = useState<Record<string, AgentConfig>>({});
+  const [initialAgentConfigs, setInitialAgentConfigs] = useState<string>("{}");
 
   useEffect(() => {
-    api
-      .get<Instance>(`/instances/${id}`)
-      .then((data) => {
+    const loadData = async () => {
+      try {
+        const data = await api.get<Instance>(`/instances/${id}`);
         setInstance(data);
         const f = formFromInstance(data);
         setForm(f);
@@ -90,32 +118,96 @@ export default function InstanceSettingsPage() {
           setPlatforms(pConfigs);
           setInitialPlatforms(JSON.stringify(pConfigs));
         }
-      })
-      .catch(() => setInstance(null))
-      .finally(() => setLoading(false));
+
+        // Load agent configs for all platforms
+        try {
+          const configsRes = await api.get<
+            Array<{ platform: string } & AgentConfig>
+          >(`/instances/${id}/agent-config`);
+          const configMap: Record<string, AgentConfig> = {};
+          for (const c of configsRes) {
+            configMap[c.platform] = {
+              styleSliders: {
+                ...defaultSliders,
+                ...(c.styleSliders as StyleSliders),
+              },
+              styleInstructions: c.styleInstructions ?? "",
+              referenceExamples: c.referenceExamples ?? "",
+              restrictions: Array.isArray(c.restrictions) ? c.restrictions : [],
+            };
+          }
+          setAgentConfigs(configMap);
+          setInitialAgentConfigs(JSON.stringify(configMap));
+        } catch {
+          // Agent configs may not exist yet — that's fine
+        }
+      } catch {
+        setInstance(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, [id]);
 
-  const isDirty = JSON.stringify(form) !== initialForm;
+  // Filter personality sub-tabs to enabled platforms
+  const enabledPlatforms = platforms
+    .filter((p) => p.enabled)
+    .map((p) => p.platform as Platform);
+
+  useEffect(() => {
+    if (!enabledPlatforms.includes(agentPlatformTab) && enabledPlatforms.length > 0) {
+      setAgentPlatformTab(enabledPlatforms[0]);
+    }
+  }, [platforms]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isInstanceDirty = JSON.stringify(form) !== initialForm;
   const isPlatformsDirty = JSON.stringify(platforms) !== initialPlatforms;
+  const isAgentConfigsDirty = JSON.stringify(agentConfigs) !== initialAgentConfigs;
+  const isDirty = isInstanceDirty || isPlatformsDirty || isAgentConfigsDirty;
 
   const update = (field: keyof SettingsForm, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSaveAll = async () => {
+    setSavingAll(true);
     try {
-      const data = await api.put<Instance>(`/instances/${id}`, form);
-      const f = formFromInstance(data);
-      setForm(f);
-      setInitialForm(JSON.stringify(f));
-      setInstance(data);
+      const promises: Promise<unknown>[] = [];
+      if (isInstanceDirty) {
+        promises.push(
+          api.put<Instance>(`/instances/${id}`, form).then((data) => {
+            const f = formFromInstance(data);
+            setForm(f);
+            setInitialForm(JSON.stringify(f));
+            setInstance(data);
+          })
+        );
+      }
+      if (isPlatformsDirty) {
+        promises.push(
+          api.put(`/instances/${id}/platforms`, platforms).then(() => {
+            setInitialPlatforms(JSON.stringify(platforms));
+          })
+        );
+      }
+      if (isAgentConfigsDirty) {
+        const initial = JSON.parse(initialAgentConfigs);
+        for (const [platform, config] of Object.entries(agentConfigs)) {
+          if (JSON.stringify(config) !== JSON.stringify(initial[platform])) {
+            promises.push(
+              api.put(`/instances/${id}/agent-config/${platform}`, config)
+            );
+          }
+        }
+      }
+      await Promise.all(promises);
+      setInitialAgentConfigs(JSON.stringify(agentConfigs));
       toast.success("Cambios guardados correctamente");
     } catch {
       toast.error("Error al guardar los cambios");
     } finally {
-      setSaving(false);
+      setSavingAll(false);
     }
   };
 
@@ -147,25 +239,14 @@ export default function InstanceSettingsPage() {
     }
   };
 
-  const handleSavePlatforms = async () => {
-    setSavingPlatforms(true);
-    try {
-      await api.put(`/instances/${id}/platforms`, platforms);
-      setInitialPlatforms(JSON.stringify(platforms));
-      toast.success("Plataformas actualizadas correctamente");
-    } catch {
-      toast.error("Error al guardar las plataformas");
-    } finally {
-      setSavingPlatforms(false);
-    }
-  };
-
   if (loading) return <PageLoader />;
 
   if (!instance) {
     return (
       <div className="flex items-center justify-center h-64">
-        <span className="text-horse-gray-400 text-sm">Instancia no encontrada</span>
+        <span className="text-horse-gray-400 text-sm">
+          Instancia no encontrada
+        </span>
       </div>
     );
   }
@@ -179,169 +260,219 @@ export default function InstanceSettingsPage() {
   ];
 
   return (
-    <div className="max-w-lg space-y-6">
-      {/* Section A + B: Editable form */}
-      <form onSubmit={handleSave}>
-        {/* Section A — Datos de la instancia */}
-        <div className="bg-white border border-horse-gray-200 rounded-xl p-6 mb-6">
-          <h2 className="text-base font-semibold text-horse-black mb-4">
-            Datos de la instancia
-          </h2>
-          <div className="space-y-4">
-            {fields.map((f) => (
-              <div key={f.key}>
+    <div className="max-w-[650px]">
+      {/* Tab bar */}
+      <div className="flex gap-1 mb-6 border-b border-horse-gray-200">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                isActive
+                  ? tab.danger
+                    ? "border-red-500 text-red-600"
+                    : "border-horse-black text-horse-black"
+                  : "border-transparent text-horse-gray-400 hover:text-horse-gray-600"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* General tab */}
+      {activeTab === "general" && (
+        <div className="space-y-6">
+          {/* Datos de la instancia */}
+          <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-horse-black mb-4">
+              Datos de la instancia
+            </h2>
+            <div className="space-y-4">
+              {fields.map((f) => (
+                <div key={f.key}>
+                  <label className="block text-sm font-medium text-horse-gray-700 mb-1">
+                    {f.label}
+                  </label>
+                  <input
+                    type="text"
+                    value={form[f.key]}
+                    onChange={(e) => update(f.key, e.target.value)}
+                    required
+                    className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Configuracion de procesamiento */}
+          <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-horse-black mb-4">
+              Configuración de procesamiento
+            </h2>
+            <div className="space-y-4">
+              <div>
                 <label className="block text-sm font-medium text-horse-gray-700 mb-1">
-                  {f.label}
+                  Período de procesamiento
+                </label>
+                <select
+                  value={form.processingPeriod}
+                  onChange={(e) => update("processingPeriod", e.target.value)}
+                  className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark bg-white"
+                >
+                  <option value="WEEKLY">Semanal</option>
+                  <option value="MONTHLY">Mensual</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-horse-gray-700 mb-1">
+                  Ventana activa (períodos)
                 </label>
                 <input
-                  type="text"
-                  value={form[f.key]}
-                  onChange={(e) => update(f.key, e.target.value)}
-                  required
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={form.activeWindow}
+                  onChange={(e) => update("activeWindow", Number(e.target.value))}
                   className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark"
                 />
+                <p className="text-xs text-horse-gray-400 mt-1">
+                  Cuántos períodos anteriores se usan como memoria activa para el
+                  procesamiento.
+                </p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Section B — Configuracion de procesamiento */}
-        <div className="bg-white border border-horse-gray-200 rounded-xl p-6 mb-6">
+      {/* Plataformas tab */}
+      {activeTab === "plataformas" && (
+        <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
           <h2 className="text-base font-semibold text-horse-black mb-4">
-            Configuración de procesamiento
+            Plataformas
           </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-horse-gray-700 mb-1">
-                Período de procesamiento
-              </label>
-              <select
-                value={form.processingPeriod}
-                onChange={(e) => update("processingPeriod", e.target.value)}
-                className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark bg-white"
-              >
-                <option value="WEEKLY">Semanal</option>
-                <option value="MONTHLY">Mensual</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-horse-gray-700 mb-1">
-                Ventana activa (períodos)
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={52}
-                value={form.activeWindow}
-                onChange={(e) => update("activeWindow", Number(e.target.value))}
-                className="w-full px-3 py-2 border border-horse-gray-200 rounded-lg text-sm focus:outline-none focus:border-horse-dark"
+          <StepPlatforms platforms={platforms} onChange={setPlatforms} />
+        </div>
+      )}
+
+      {/* Personalidad tab */}
+      {activeTab === "personalidad" && (
+        <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
+          <h2 className="text-base font-semibold text-horse-black mb-4">
+            Personalidad del Agente
+          </h2>
+          <p className="text-xs text-horse-gray-400 mb-4">
+            Configura el tono y estilo de generacion de contenido para cada
+            plataforma.
+          </p>
+
+          {enabledPlatforms.length === 0 ? (
+            <p className="text-sm text-horse-gray-400">
+              Habilitá al menos una plataforma para configurar la personalidad.
+            </p>
+          ) : (
+            <>
+              {/* Platform sub-tabs */}
+              <div className="flex gap-1 mb-5 border-b border-horse-gray-200">
+                {enabledPlatforms.map((p) => {
+                  const isActive = agentPlatformTab === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setAgentPlatformTab(p)}
+                      className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                        isActive
+                          ? "border-horse-black text-horse-black"
+                          : "border-transparent text-horse-gray-400 hover:text-horse-gray-600"
+                      }`}
+                    >
+                      {platformLabels[p]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <AgentPersonalityPanel
+                key={agentPlatformTab}
+                config={agentConfigs[agentPlatformTab] || defaultConfig}
+                onChange={(c) =>
+                  setAgentConfigs((prev) => ({
+                    ...prev,
+                    [agentPlatformTab]: c,
+                  }))
+                }
               />
-              <p className="text-xs text-horse-gray-400 mt-1">
-                Cuántos períodos anteriores se usan como memoria activa para el procesamiento.
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Peligro tab */}
+      {activeTab === "peligro" && (
+        <div className="bg-white border border-red-300 rounded-xl p-6">
+          <h2 className="text-base font-semibold text-red-600 mb-2">
+            Zona de peligro
+          </h2>
+
+          {instance.status !== "ARCHIVED" && (
+            <div className="mb-5">
+              <p className="text-sm text-horse-gray-500 mb-3">
+                Archivar esta instancia la ocultará del sidebar. Podrás
+                restaurarla desde Configuración.
               </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Save button */}
-        <Button type="submit" disabled={!isDirty || saving}>
-          {saving ? "Guardando..." : "Guardar cambios"}
-        </Button>
-      </form>
-
-      {/* Section — Plataformas */}
-      <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
-        <h2 className="text-base font-semibold text-horse-black mb-4">
-          Plataformas
-        </h2>
-        <StepPlatforms platforms={platforms} onChange={setPlatforms} />
-        <div className="mt-4">
-          <Button
-            onClick={handleSavePlatforms}
-            disabled={!isPlatformsDirty || savingPlatforms}
-          >
-            {savingPlatforms ? "Guardando..." : "Guardar plataformas"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Section — Personalidad del Agente */}
-      <div className="bg-white border border-horse-gray-200 rounded-xl p-6">
-        <h2 className="text-base font-semibold text-horse-black mb-4">
-          Personalidad del Agente
-        </h2>
-        <p className="text-xs text-horse-gray-400 mb-4">
-          Configura el tono y estilo de generacion de contenido para cada plataforma.
-        </p>
-
-        {/* Platform tabs */}
-        <div className="flex gap-1 mb-5 border-b border-horse-gray-200">
-          {(["LINKEDIN", "X", "TIKTOK", "BLOG"] as Platform[]).map((p) => {
-            const labels: Record<Platform, string> = {
-              LINKEDIN: "LinkedIn",
-              X: "X",
-              TIKTOK: "TikTok",
-              BLOG: "Blog",
-            };
-            const isActive = agentPlatformTab === p;
-            return (
               <button
-                key={p}
                 type="button"
-                onClick={() => setAgentPlatformTab(p)}
-                className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                  isActive
-                    ? "border-horse-black text-horse-black"
-                    : "border-transparent text-horse-gray-400 hover:text-horse-gray-600"
-                }`}
+                onClick={() => setShowArchiveModal(true)}
+                className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
               >
-                {labels[p]}
+                Archivar instancia
               </button>
-            );
-          })}
-        </div>
+            </div>
+          )}
 
-        <AgentPersonalityPanel
-          key={agentPlatformTab}
-          instanceId={id}
-          platform={agentPlatformTab}
-        />
-      </div>
-
-      {/* Section C — Zona de peligro */}
-      <div className="bg-white border border-red-300 rounded-xl p-6">
-        <h2 className="text-base font-semibold text-red-600 mb-2">
-          Zona de peligro
-        </h2>
-
-        {instance.status !== "ARCHIVED" && (
-          <div className="mb-5">
+          <div
+            className={
+              instance.status !== "ARCHIVED"
+                ? "pt-5 border-t border-red-200"
+                : ""
+            }
+          >
             <p className="text-sm text-horse-gray-500 mb-3">
-              Archivar esta instancia la ocultará del sidebar. Podrás restaurarla desde Configuración.
+              Eliminar permanentemente esta instancia y todo su contenido,
+              inputs, insights y brand voice.{" "}
+              <span className="font-semibold text-red-600">
+                Esta acción no se puede deshacer.
+              </span>
             </p>
             <button
               type="button"
-              onClick={() => setShowArchiveModal(true)}
-              className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+              onClick={() => {
+                setDeleteConfirmName("");
+                setShowDeleteModal(true);
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
             >
-              Archivar instancia
+              Eliminar permanentemente
             </button>
           </div>
-        )}
-
-        <div className={instance.status !== "ARCHIVED" ? "pt-5 border-t border-red-200" : ""}>
-          <p className="text-sm text-horse-gray-500 mb-3">
-            Eliminar permanentemente esta instancia y todo su contenido, inputs, insights y brand voice. <span className="font-semibold text-red-600">Esta acción no se puede deshacer.</span>
-          </p>
-          <button
-            type="button"
-            onClick={() => { setDeleteConfirmName(""); setShowDeleteModal(true); }}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Eliminar permanentemente
-          </button>
         </div>
-      </div>
+      )}
+
+      {/* Save button — shown on all tabs except peligro */}
+      {activeTab !== "peligro" && (
+        <div className="mt-8">
+          <Button onClick={handleSaveAll} disabled={!isDirty || savingAll}>
+            {savingAll ? "Guardando..." : "Guardar todos los cambios"}
+          </Button>
+        </div>
+      )}
 
       {/* Archive confirmation modal */}
       <Modal
@@ -351,8 +482,11 @@ export default function InstanceSettingsPage() {
         size="sm"
       >
         <p className="text-sm text-horse-gray-600 mb-6">
-          <span className="font-semibold text-horse-black">{instance.clientName}</span>{" "}
-          dejará de aparecer en tu sidebar. Podrás restaurarla desde la página de Configuración.
+          <span className="font-semibold text-horse-black">
+            {instance.clientName}
+          </span>{" "}
+          dejará de aparecer en tu sidebar. Podrás restaurarla desde la página
+          de Configuración.
         </p>
         <div className="flex gap-3 justify-end">
           <Button
@@ -380,10 +514,19 @@ export default function InstanceSettingsPage() {
         size="sm"
       >
         <p className="text-sm text-horse-gray-600 mb-4">
-          Se eliminará <span className="font-semibold text-horse-black">{instance.clientName}</span> junto con todo su contenido, inputs, insights y brand voice. Esta acción no se puede deshacer.
+          Se eliminará{" "}
+          <span className="font-semibold text-horse-black">
+            {instance.clientName}
+          </span>{" "}
+          junto con todo su contenido, inputs, insights y brand voice. Esta
+          acción no se puede deshacer.
         </p>
         <p className="text-sm text-horse-gray-600 mb-2">
-          Escribí <span className="font-mono font-semibold text-red-600">{instance.clientName}</span> para confirmar:
+          Escribí{" "}
+          <span className="font-mono font-semibold text-red-600">
+            {instance.clientName}
+          </span>{" "}
+          para confirmar:
         </p>
         <input
           type="text"
