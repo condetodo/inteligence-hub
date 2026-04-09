@@ -33,10 +33,10 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
     : "?";
 
   return (
-    <div className="h-auto min-h-[68px] border-b border-horse-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-8 py-3 sm:py-0 gap-2 sm:gap-0 bg-white">
+    <div className="h-auto min-h-[68px] border-b border-horse-warm-border flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-8 py-3 sm:py-0 gap-2 sm:gap-0 bg-white">
       <div className="flex items-center gap-4">
         <h1 className="text-lg font-semibold text-horse-black">{instance.clientName}</h1>
-        <span className="text-[13px] text-horse-gray-400">
+        <span className="text-[13px] text-horse-warm-muted">
           {instance.company}
         </span>
       </div>
@@ -44,9 +44,9 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
       <div className="relative" ref={menuRef}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-horse-gray-100 transition-colors"
+          className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-horse-warm-surface transition-colors"
         >
-          <div className="w-8 h-8 rounded-full bg-horse-purple flex items-center justify-center text-white text-xs font-semibold">
+          <div className="w-8 h-8 rounded-full bg-horse-gold flex items-center justify-center text-horse-black text-xs font-semibold">
             {initials}
           </div>
           <span className="text-sm font-medium text-horse-black hidden sm:block">
@@ -64,14 +64,14 @@ export function InstanceTopbar({ instance }: InstanceTopbarProps) {
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-1 w-48 bg-white border border-horse-gray-200 rounded-lg shadow-lg py-1 z-50">
+          <div className="absolute right-0 mt-1 w-48 bg-white border border-horse-warm-border rounded-lg shadow-lg py-1 z-50">
             <button
               onClick={() => setOpen(false)}
               className="w-full text-left px-4 py-2 text-sm text-horse-gray-500 hover:bg-horse-gray-50 transition-colors"
             >
               Editar perfil
             </button>
-            <div className="border-t border-horse-gray-200 my-1" />
+            <div className="border-t border-horse-warm-border my-1" />
             <button
               onClick={logout}
               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"

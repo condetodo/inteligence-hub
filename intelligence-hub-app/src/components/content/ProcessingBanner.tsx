@@ -47,7 +47,7 @@ export default function ProcessingBanner({ run, contentCount, instanceId, platfo
 
   return (
     <>
-      <div className="bg-white border border-horse-gray-200 rounded-[10px] px-5 py-3.5 mb-5 flex items-center justify-between">
+      <div className="bg-white border border-horse-warm-border rounded-[10px] px-5 py-3.5 mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2.5 text-[13px] text-horse-gray-700">
           {run && (
             <>
@@ -75,7 +75,7 @@ export default function ProcessingBanner({ run, contentCount, instanceId, platfo
           <button
             onClick={() => setShowModal(true)}
             disabled={isRunning}
-            className="px-3.5 py-1.5 text-xs font-medium rounded-lg bg-horse-black text-white hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-horse-gold text-horse-black hover:bg-horse-gold-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
           >
             {isRunning ? 'Procesando...' : '\u26A1 Procesar'}
           </button>

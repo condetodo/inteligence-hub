@@ -69,23 +69,23 @@ export default function InputsPage() {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-horse-black">Inputs</h2>
-        <p className="text-sm text-horse-gray-400 mt-0.5">Material fuente para la generación de contenido</p>
+        <p className="text-sm text-horse-warm-muted mt-0.5">Material fuente para la generación de contenido</p>
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 mb-6 bg-horse-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-horse-warm-active rounded-lg p-1 w-fit">
         <button
           onClick={() => setActiveTab('weekly')}
           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
             activeTab === 'weekly'
               ? 'bg-white shadow-sm text-horse-black'
-              : 'text-horse-gray-400 hover:text-horse-gray-500'
+              : 'text-horse-warm-muted hover:text-horse-warm-text'
           }`}
         >
           Inputs semanales
           <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
             activeTab === 'weekly'
-              ? 'bg-horse-gray-200 text-horse-gray-500'
+              ? 'bg-horse-warm-active text-horse-warm-text'
               : 'text-horse-gray-400'
           }`}>
             {weeklyInputs.length}
@@ -96,13 +96,13 @@ export default function InputsPage() {
           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
             activeTab === 'strategic'
               ? 'bg-white shadow-sm text-horse-black'
-              : 'text-horse-gray-400 hover:text-horse-gray-500'
+              : 'text-horse-warm-muted hover:text-horse-warm-text'
           }`}
         >
           Documentos estratégicos
           <span className={`ml-1.5 text-xs ${
             activeTab === 'strategic'
-              ? 'bg-horse-gray-200 text-horse-gray-500 px-1.5 py-0.5 rounded-full'
+              ? 'bg-horse-warm-active text-horse-warm-text px-1.5 py-0.5 rounded-full'
               : 'text-horse-gray-400'
           }`}>
             {strategicDocs.length}
@@ -119,18 +119,18 @@ export default function InputsPage() {
               {/* CTA subir input */}
               <button
                 onClick={() => setShowUpload(true)}
-                className="w-full border-2 border-dashed border-horse-gray-200 rounded-xl p-5 mb-6 flex items-center justify-between hover:border-horse-purple/40 hover:bg-horse-purple/[0.02] transition-colors group"
+                className="w-full border-2 border-dashed border-horse-warm-border rounded-xl p-5 mb-6 flex items-center justify-between hover:border-horse-gold/40 hover:bg-horse-gold/[0.02] transition-colors group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-horse-purple/10 flex items-center justify-center group-hover:bg-horse-purple/20 transition-colors">
-                    <Plus size={20} className="text-horse-purple" />
+                  <div className="w-10 h-10 rounded-lg bg-horse-gold/10 flex items-center justify-center group-hover:bg-horse-gold/20 transition-colors">
+                    <Plus size={20} className="text-horse-gold" />
                   </div>
                   <div className="text-left">
                     <p className="text-sm font-medium text-horse-black">Subir nuevo input</p>
                     <p className="text-xs text-horse-gray-400">WhatsApp, emails, notas de reuniones, artículos...</p>
                   </div>
                 </div>
-                <ChevronRight size={20} className="text-horse-gray-300 group-hover:text-horse-purple transition-colors" />
+                <ChevronRight size={20} className="text-horse-warm-muted group-hover:text-horse-gold transition-colors" />
               </button>
 
               <InputList inputs={weeklyInputs} onDelete={handleDelete} />

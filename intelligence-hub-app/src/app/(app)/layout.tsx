@@ -22,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-horse-bg flex items-center justify-center">
+      <div className="min-h-screen bg-horse-warm-bg flex items-center justify-center">
         <Spinner size={24} />
       </div>
     );
@@ -33,11 +33,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
       <InstancesProvider>
-        <div className="min-h-screen bg-horse-bg">
+        <div className="min-h-screen bg-horse-warm-bg">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
           {/* Mobile header */}
-          <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-horse-gray-200 flex items-center px-4 z-20">
+          <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-horse-warm-border flex items-center px-4 z-20">
             <button
               onClick={() => setSidebarOpen(true)}
               className="p-2 -ml-2 text-horse-gray-500 hover:text-horse-black transition-colors"
@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Menu size={20} />
             </button>
             <div className="ml-2 flex items-center gap-2">
-              <div className="w-6 h-6 bg-horse-black rounded flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-6 h-6 bg-horse-gold rounded flex items-center justify-center text-horse-black text-xs font-bold">
                 H
               </div>
               <span className="text-sm font-bold tracking-[1.5px] uppercase text-horse-black">

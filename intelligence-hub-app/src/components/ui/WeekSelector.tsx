@@ -21,13 +21,13 @@ export default function WeekSelector({ year, weekNumber, onChange }: Props) {
 
   return (
     <div className="flex items-center gap-3">
-      <button onClick={handlePrev} className="w-7 h-7 flex items-center justify-center rounded-md border border-horse-gray-200 text-horse-gray-400 hover:border-horse-black hover:text-horse-black transition-colors">
+      <button onClick={handlePrev} className="w-7 h-7 flex items-center justify-center rounded-md border border-horse-warm-border text-horse-warm-muted hover:border-horse-gold hover:text-horse-black transition-colors">
         <ChevronLeft size={16} />
       </button>
-      <span className="bg-horse-black text-white px-3.5 py-1.5 rounded-lg text-[13px] font-medium">
+      <span className="bg-horse-gold text-horse-black px-3.5 py-1.5 rounded-lg text-[13px] font-medium">
         {formatWeekLabel(year, weekNumber)}
       </span>
-      <button onClick={handleNext} className="w-7 h-7 flex items-center justify-center rounded-md border border-horse-gray-200 text-horse-gray-400 hover:border-horse-black hover:text-horse-black transition-colors">
+      <button onClick={handleNext} className="w-7 h-7 flex items-center justify-center rounded-md border border-horse-warm-border text-horse-warm-muted hover:border-horse-gold hover:text-horse-black transition-colors">
         <ChevronRight size={16} />
       </button>
     </div>

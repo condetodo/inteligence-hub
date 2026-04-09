@@ -8,7 +8,7 @@ interface BadgeProps {
 
 const variantStyles: Record<string, string> = {
   default: "bg-horse-gray-100 text-horse-gray-500",
-  active: "bg-horse-black text-white",
+  active: "bg-horse-gold text-horse-black",
   linkedin: "bg-[rgba(10,102,194,0.08)] text-platform-linkedin",
   x: "bg-[rgba(0,0,0,0.05)] text-platform-x",
   tiktok: "bg-[rgba(193,53,132,0.08)] text-platform-tiktok",

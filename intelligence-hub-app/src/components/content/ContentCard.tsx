@@ -74,7 +74,7 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
   return (
     <div
       onClick={() => onClick?.(item)}
-      className="bg-white border border-horse-gray-200 rounded-[10px] p-3.5 cursor-pointer transition-all hover:border-horse-gray-300 hover:shadow-md hover:-translate-y-px"
+      className="bg-white/85 border border-black/[0.06] rounded-[10px] p-3.5 cursor-pointer transition-all hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:-translate-y-px"
     >
       <div className="flex items-center justify-between gap-2">
         <PlatformBadge platform={item.platform} />
@@ -95,7 +95,7 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
                 className={`w-6 h-6 rounded-md border text-[10px] font-semibold flex items-center justify-center transition-colors ${
                   item.variant === v
                     ? 'border-horse-black bg-horse-black text-white'
-                    : 'border-horse-gray-200 text-horse-gray-400 hover:border-horse-dark'
+                    : 'border-horse-warm-border text-horse-gray-400 hover:border-horse-dark'
                 }`}
               >
                 {v}
@@ -108,15 +108,15 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
       <div className="text-[13px] font-medium mb-1.5 leading-snug text-horse-black line-clamp-2">{item.title}</div>
       <div className="text-xs text-horse-gray-500 leading-relaxed mb-2.5 line-clamp-2">{item.content.slice(0, 120)}...</div>
 
-      <div className="flex items-center justify-between text-[11px] text-horse-gray-400">
-        <span className="bg-horse-gray-100 text-horse-gray-500 px-2 py-0.5 rounded text-[10px] font-medium">
+      <div className="flex items-center justify-between text-[11px] text-horse-warm-muted">
+        <span className="bg-horse-warm-active text-horse-warm-text px-2 py-0.5 rounded text-[10px] font-medium">
           {typeLabels[item.type] || item.type}
         </span>
         <div className="flex gap-1.5">
           {item.status === 'DRAFT' && onApprove && (
             <button
               onClick={handleApproveClick}
-              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-blue-400 hover:text-blue-400 hover:bg-blue-50 transition-colors"
+              className="w-7 h-7 rounded-md border border-horse-warm-border flex items-center justify-center text-horse-gray-400 hover:border-blue-400 hover:text-blue-400 hover:bg-blue-50 transition-colors"
               title="Enviar a revision"
             >
               <Check size={14} />
@@ -126,7 +126,7 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
             <button
               onClick={handleApproveClick}
               disabled={loading}
-              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-7 h-7 rounded-md border border-horse-warm-border flex items-center justify-center text-horse-gray-400 hover:border-status-approved hover:text-status-approved hover:bg-[#2a9d5c]/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={loading ? 'Generando imagen...' : 'Aprobar'}
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
@@ -135,7 +135,7 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
           {(item.status === 'REVIEW' || item.status === 'APPROVED') && onReject && (
             <button
               onClick={(e) => { e.stopPropagation(); onReject(item.id); }}
-              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-red-400 hover:text-red-400 hover:bg-red-50 transition-colors"
+              className="w-7 h-7 rounded-md border border-horse-warm-border flex items-center justify-center text-horse-gray-400 hover:border-red-400 hover:text-red-400 hover:bg-red-50 transition-colors"
               title="Volver atras"
             >
               <X size={14} />
@@ -144,7 +144,7 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
           {item.status === 'APPROVED' && onApprove && (
             <button
               onClick={handleApproveClick}
-              className="w-7 h-7 rounded-md border border-horse-gray-200 flex items-center justify-center text-horse-gray-400 hover:border-horse-black hover:text-horse-black hover:bg-horse-gray-100 transition-colors"
+              className="w-7 h-7 rounded-md border border-horse-warm-border flex items-center justify-center text-horse-gray-400 hover:border-horse-black hover:text-horse-black hover:bg-horse-gray-100 transition-colors"
               title="Marcar como publicado"
             >
               <Send size={13} />
@@ -159,12 +159,12 @@ export default function ContentCard({ item, siblings, loading, onApprove, onReje
       </div>
 
       {showApprovalNotes && (
-        <div className="mt-3 pt-3 border-t border-horse-gray-200" onClick={(e) => e.stopPropagation()}>
+        <div className="mt-3 pt-3 border-t border-horse-warm-border" onClick={(e) => e.stopPropagation()}>
           <textarea
             value={approvalNotes}
             onChange={(e) => setApprovalNotes(e.target.value)}
             placeholder="Notas de aprobacion (opcional)..."
-            className="w-full text-xs bg-horse-gray-50 border border-horse-gray-200 rounded-lg px-3 py-2 text-horse-dark placeholder:text-horse-gray-400 focus:outline-none focus:border-horse-gray-300 resize-none"
+            className="w-full text-xs bg-horse-gray-50 border border-horse-warm-border rounded-lg px-3 py-2 text-horse-dark placeholder:text-horse-gray-400 focus:outline-none focus:border-horse-gray-300 resize-none"
             rows={2}
           />
           <div className="flex justify-end gap-2 mt-2">

@@ -24,8 +24,8 @@ export default function PlatformFilter({ selected, onChange }: Props) {
           onClick={() => onChange(f.value)}
           className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
             selected === f.value
-              ? 'bg-horse-black text-white border-horse-black'
-              : 'border-horse-gray-200 text-horse-gray-500 hover:border-horse-dark hover:text-horse-dark'
+              ? 'bg-horse-gold text-horse-black border-horse-gold font-semibold'
+              : 'border-horse-warm-border text-horse-warm-text hover:border-[#d4c8b0] hover:text-horse-black'
           }`}
         >
           {f.label}
