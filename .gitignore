@@ -25,3 +25,6 @@ build/
 # Logs
 *.log
 npm-debug.log*
+
+# Local PDF exports (regenerable from docs/exports/*.py scripts)
+docs/exports/*.pdf
