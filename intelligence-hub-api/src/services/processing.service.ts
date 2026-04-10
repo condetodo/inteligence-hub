@@ -86,6 +86,9 @@ export class ProcessingService {
       }
     }
 
+    // Step list must match orchestrator.ts. Renamed 'brandVoice' ->
+    // 'distillation' in Digital Twin Phase 1. Legacy runs in DB still
+    // render via STEP_LABELS backward compat in the frontend.
     const run = await prisma.processingRun.create({
       data: {
         instanceId,
@@ -95,7 +98,7 @@ export class ProcessingService {
         config: config ?? undefined,
         steps: {
           corpus: 'pending',
-          brandVoice: 'pending',
+          distillation: 'pending',
           content: 'pending',
           insights: 'pending',
           consistency: 'pending',

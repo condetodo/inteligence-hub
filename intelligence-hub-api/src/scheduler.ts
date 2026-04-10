@@ -45,6 +45,10 @@ export function startScheduler() {
         }
 
         // Create processing run
+        // Keep this step list aligned with orchestrator.ts. The step name
+        // was renamed from 'brandVoice' to 'distillation' in Digital Twin
+        // Phase 1 (Horse Workflow). Old runs in DB still have the legacy
+        // key and keep rendering via STEP_LABELS backward compat.
         const run = await prisma.processingRun.create({
           data: {
             instanceId: instance.id,
@@ -53,7 +57,7 @@ export function startScheduler() {
             triggeredBy: 'CRON',
             steps: {
               corpus: 'pending',
-              brandVoice: 'pending',
+              distillation: 'pending',
               content: 'pending',
               insights: 'pending',
               consistency: 'pending',

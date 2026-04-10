@@ -157,7 +157,6 @@
 
 ### Technical Debt — To Discuss
 
-- **Dead code: `agents/brandVoice.ts`** — Exports `runBrandVoiceAgent` but nothing in the codebase imports it. Replaced by `agents/distillation.ts` in the Digital Twin Phase 1 refactor. Safe to delete, but verify no silent references (Prisma client hooks, tests, migrations) before removing.
 - **Right-size `maxTokens` per agent** — Current defaults (Sonnet 4096, Opus 8192, Blog 12000) are arbitrary. `consistencyChecker` with 4096 is tight for 9-15 drafts with notes and will cut responses if volume grows. Needs analysis of realistic output sizes per agent + safety floors. Francisco wants to discuss recommended values before changing.
 - **Refactor agent function signatures** — `runLinkedInAgent`, `runXAgent`, `runBlogAgent`, `runTikTokAgent` all take 12+ positional parameters. Each new cross-cutting feature (humanization, style, benchmark…) adds one more. Should become a single `{ instanceId, context, config }` object with destructuring. Refactor touches orchestrator + 4 agents. Francisco wants to discuss approach (incremental vs bulk, naming of context bundle) before executing.
 - **Horse Workflow E2E testing** — Code shipped 2026-04-04 but never fully tested end-to-end with real data. Need to: run full pipeline, verify consistency scores are useful (distribution between 6-9, not all 9.5), check lock fields are respected, validate benchmark diversity selection.
