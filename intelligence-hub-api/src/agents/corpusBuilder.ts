@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const CORPUS_SYSTEM_PROMPT = `Eres un analista de comunicaciones experto. Tu trabajo es procesar conversaciones, emails y notas en bruto y extraer informacion estructurada.
@@ -38,7 +38,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     "people": ["nombre1", "nombre2"],
     "companies": ["empresa1", "empresa2"]
   }
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 export async function runCorpusBuilder(
   instanceId: string,

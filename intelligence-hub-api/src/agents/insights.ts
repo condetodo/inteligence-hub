@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const INSIGHTS_SYSTEM_PROMPT = `Eres un analista de inteligencia de negocios experto. Generas reportes semanales profundos y accionables para lideres empresariales.
@@ -29,7 +29,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     "Pregunta estrategica 3"
   ],
   "recommendations": "3-5 recomendaciones concretas y accionables para la proxima semana."
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 export async function runInsightsAgent(instanceId: string, weekNumber: number, year: number, runId?: string) {
   console.log(`[InsightsAgent] Generating insights for instance ${instanceId}, week ${weekNumber}/${year}`);

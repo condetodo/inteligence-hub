@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const DISTILLATION_SYSTEM_PROMPT = `Eres un analista de inteligencia personal experto. Tu trabajo es actualizar el perfil base de un Digital Twin (representacion digital de un CEO o lider) basandote en nuevos datos semanales.
@@ -50,7 +50,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     "recommendations": "recomendacion para el siguiente periodo",
     "staticSuggestions": ["sugerencia de cambio a campo estatico (solo si staticFieldsLocked es true y se detectaron contradicciones o mejoras)"]
   }
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 export async function runDistillationAgent(instanceId: string, weekNumber: number, year: number, runId?: string) {
   console.log(`[Distillation] Updating KB for instance ${instanceId}, period ${weekNumber}/${year}`);

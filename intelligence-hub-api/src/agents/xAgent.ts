@@ -1,4 +1,4 @@
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -59,7 +59,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     "imagePrompt": "descripcion visual para imagen del primer tweet",
     "tweets": ["1/ texto del primer tweet del hilo", "2/ texto del segundo tweet", "3/ ..."]
   }
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 const buildXUserPrompt = (
   brandVoice: Record<string, unknown>,

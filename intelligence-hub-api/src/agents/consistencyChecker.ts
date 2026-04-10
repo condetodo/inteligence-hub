@@ -1,4 +1,4 @@
-import { callSonnet } from '../lib/claude';
+import { callSonnet, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -23,6 +23,8 @@ FORMATO DE RESPUESTA (JSON estricto):
     }
   ]
 }
+
+${STRICT_JSON_DIRECTIVE}
 `;
 
 export async function runConsistencyChecker(instanceId: string, weekNumber: number, year: number, runId?: string) {

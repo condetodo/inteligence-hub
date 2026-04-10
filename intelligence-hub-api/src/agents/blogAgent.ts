@@ -1,4 +1,4 @@
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -58,7 +58,9 @@ FORMATO DE RESPUESTA (JSON estricto):
     ],
     "seoKeywords": ["keyword1", "keyword2", "keyword3"]
   }
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 const buildBlogUserPrompt = (
   brandVoice: Record<string, unknown>,

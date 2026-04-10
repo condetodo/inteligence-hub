@@ -1,4 +1,4 @@
-import { callOpus } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -51,7 +51,9 @@ FORMATO DE RESPUESTA (JSON estricto):
       "imagePrompt": "descripcion de thumbnail para el video"
     }
   ]
-}`;
+}
+
+${STRICT_JSON_DIRECTIVE}`;
 
 const buildTikTokUserPrompt = (
   brandVoice: Record<string, unknown>,

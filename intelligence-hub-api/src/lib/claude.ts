@@ -22,6 +22,28 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 /**
+ * Canonical JSON output directive. Append this to every agent's system prompt
+ * (after the FORMATO DE RESPUESTA block) to guarantee pure-JSON responses.
+ *
+ * Why this matters: models occasionally wrap structured output in prose or
+ * markdown fences ("Aquí tienes el análisis:", ```json ... ```), which
+ * breaks downstream JSON.parse(). The extractJsonBlock() helper below is a
+ * safety net, but prevention at prompt level is cheaper (fewer retries,
+ * lower token usage, more predictable latency).
+ *
+ * Keep this string in sync across all agents by importing it — do not
+ * duplicate the text inline.
+ */
+export const STRICT_JSON_DIRECTIVE = `
+REGLAS DE SALIDA (OBLIGATORIAS):
+- Tu respuesta debe ser EXCLUSIVAMENTE el objeto JSON que se describe arriba.
+- El primer caracter debe ser { y el ultimo debe ser }. Nada antes, nada despues.
+- NO uses bloques de codigo markdown (\`\`\`json ... \`\`\`).
+- NO incluyas prosa explicativa, notas, comentarios ni disculpas.
+- NO envuelvas el JSON en una clave contenedora extra.
+- Si no tenes informacion para un campo, devuelve una cadena vacia, null, o un arreglo vacio segun corresponda al tipo — nunca texto libre.`.trim();
+
+/**
  * Extracts a JSON block from a Claude response, tolerating common formats:
  * - Pure JSON
  * - JSON wrapped in ```json fences
