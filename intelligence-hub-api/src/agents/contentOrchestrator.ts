@@ -4,6 +4,7 @@ import { runLinkedInAgent } from './linkedinAgent';
 import { runXAgent } from './xAgent';
 import { runTikTokAgent } from './tiktokAgent';
 import { runBlogAgent } from './blogAgent';
+import { getHumanizationDirectives } from './humanizationLayer';
 
 // --- Benchmark helpers ---
 
@@ -218,6 +219,14 @@ export async function runContentOrchestrator(
     }
   }
 
+  // ── Build humanization directives per platform ─────────────────────
+  // Universal anti-AI writing rules + per-platform adjustments.
+  // Always active, invisible to the user, independent from brand voice.
+  const humanizationByPlatform: Record<string, string> = {};
+  for (const platform of enabledPlatforms) {
+    humanizationByPlatform[platform] = getHumanizationDirectives(platform);
+  }
+
   // ── Dispatch enabled agents in parallel ────────────────────────────
 
   const getConfig = (platform: string) =>
@@ -231,7 +240,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runLinkedInAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: linkedInConfig.postsPerPeriod,
-      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined, styleByPlatform['LINKEDIN'] || undefined, runId).catch((e) => {
+      }, benchmarksByPlatform['LINKEDIN'], strategicContext, configContext || undefined, styleByPlatform['LINKEDIN'] || undefined, runId, humanizationByPlatform['LINKEDIN']).catch((e) => {
         console.error('[ContentOrchestrator] LinkedIn failed:', e.message);
         return [];
       }),
@@ -245,7 +254,7 @@ export async function runContentOrchestrator(
       runXAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: xConfig.postsPerPeriod,
         threadsPerPeriod: xConfig.threadsPerPeriod ?? 1,
-      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined, styleByPlatform['X'] || undefined, runId).catch((e) => {
+      }, benchmarksByPlatform['X'], strategicContext, configContext || undefined, styleByPlatform['X'] || undefined, runId, humanizationByPlatform['X']).catch((e) => {
         console.error('[ContentOrchestrator] X failed:', e.message);
         return [];
       }),
@@ -258,7 +267,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runTikTokAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: tiktokConfig.postsPerPeriod,
-      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined, styleByPlatform['TIKTOK'] || undefined, runId).catch((e) => {
+      }, benchmarksByPlatform['TIKTOK'], strategicContext, configContext || undefined, styleByPlatform['TIKTOK'] || undefined, runId, humanizationByPlatform['TIKTOK']).catch((e) => {
         console.error('[ContentOrchestrator] TikTok failed:', e.message);
         return [];
       }),
@@ -271,7 +280,7 @@ export async function runContentOrchestrator(
     tasks.push(
       runBlogAgent(instanceId, weekNumber, year, brandVoiceData, corpusData, {
         postsPerPeriod: blogConfig.postsPerPeriod,
-      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined, styleByPlatform['BLOG'] || undefined, runId).catch((e) => {
+      }, benchmarksByPlatform['BLOG'], strategicContext, configContext || undefined, styleByPlatform['BLOG'] || undefined, runId, humanizationByPlatform['BLOG']).catch((e) => {
         console.error('[ContentOrchestrator] Blog failed:', e.message);
         return [];
       }),

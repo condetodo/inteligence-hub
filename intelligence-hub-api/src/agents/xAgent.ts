@@ -70,6 +70,7 @@ const buildXUserPrompt = (
   configContext?: string,
   benchmark?: string,
   styleContext?: string,
+  humanizationContext?: string,
 ) =>
   `BRAND VOICE (identidad fija):
 ${JSON.stringify(brandVoice, null, 2)}
@@ -85,6 +86,8 @@ ${configContext || ''}
 ${benchmark || ''}
 
 ${styleContext || ''}
+
+${humanizationContext || ''}
 
 Genera ${tweetCount} tweets independientes y ${threadCount} hilo${threadCount !== 1 ? 's' : ''} de 5-8 tweets. Responde SOLO con JSON valido.`;
 
@@ -102,6 +105,7 @@ export async function runXAgent(
   configContext?: string,
   styleContext?: string,
   runId?: string,
+  humanizationContext?: string,
 ): Promise<any[]> {
   const tweetCount = config.postsPerPeriod;
   const threadCount = config.threadsPerPeriod;
@@ -109,7 +113,7 @@ export async function runXAgent(
 
   // 1. Generate content via LLM
   const systemPrompt = buildXSystemPrompt(tweetCount, threadCount);
-  const userPrompt = buildXUserPrompt(brandVoice, corpus, tweetCount, threadCount, strategicContext, configContext, benchmark, styleContext);
+  const userPrompt = buildXUserPrompt(brandVoice, corpus, tweetCount, threadCount, strategicContext, configContext, benchmark, styleContext, humanizationContext);
   const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: XSkillOutput; usage: any };
 
   if (usage && runId) {
