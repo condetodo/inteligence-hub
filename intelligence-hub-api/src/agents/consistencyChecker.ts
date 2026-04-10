@@ -78,8 +78,26 @@ ${recentApproved.map((a) => a.content.substring(0, 200)).join('\n---\n')}
   }
 
   const scores = result?.scores as Array<{ contentId: string; score: number; notes: string }> | undefined;
-  if (scores) {
-    for (const score of scores) {
+  if (!Array.isArray(scores) || scores.length === 0) {
+    console.warn('[ConsistencyChecker] No scores returned from Claude.');
+    return;
+  }
+
+  // Defensive: only update drafts that actually exist in this run. The model
+  // can hallucinate IDs or reference drafts that were deleted between the
+  // fetch and the update. A single bad ID must not abort the whole step.
+  const draftIds = new Set(drafts.map((d) => d.id));
+  let updated = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const score of scores) {
+    if (!score?.contentId || !draftIds.has(score.contentId)) {
+      console.warn(`[ConsistencyChecker] Skipping unknown contentId: ${score?.contentId}`);
+      skipped++;
+      continue;
+    }
+    try {
       await prisma.contentOutput.update({
         where: { id: score.contentId },
         data: {
@@ -87,9 +105,15 @@ ${recentApproved.map((a) => a.content.substring(0, 200)).join('\n---\n')}
           consistencyNotes: score.notes,
         },
       });
+      updated++;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn(`[ConsistencyChecker] Failed to update ${score.contentId}: ${msg}`);
+      failed++;
     }
-    console.log(`[ConsistencyChecker] Scored ${scores.length} drafts.`);
-  } else {
-    console.warn('[ConsistencyChecker] No scores returned from Claude.');
   }
+
+  console.log(
+    `[ConsistencyChecker] Scored ${updated}/${drafts.length} drafts (skipped ${skipped}, failed ${failed}).`,
+  );
 }
