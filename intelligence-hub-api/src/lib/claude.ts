@@ -49,7 +49,7 @@ export const MAX_TOKENS = {
   distillation: 6144,    // updatedFields + topics + contacts + narratives + weeklyInsight
   insights: 4096,        // executiveSummary + topTopics + opportunity + evolution + recommendations
   consistency: 6144,     // scores + notes for up to ~15 drafts
-  summaryExtractor: 1024, // 400-word summary of a single strategic document
+  summaryExtractor: 2048, // 400-word summary of a strategic doc; 1024 was too tight for complex docs with many keyPoints (saw 3/3 failures in "Unterminated string" territory)
 
   // Content agents
   linkedin: 6144,        // N posts × 3 variants × ~200 words each
