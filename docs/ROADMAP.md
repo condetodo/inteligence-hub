@@ -157,9 +157,19 @@
 
 ### Technical Debt — To Discuss
 
-- **Data-driven maxTokens refinement** — First pass was done 2026-04-10 with calibrated values per agent based on static schema analysis (MAX_TOKENS constant in claude.ts). Should be revisited once APIUsageLog has accumulated ~20+ runs of real traffic to get p95/p99 distributions. Likely tweaks: tighten values if realistic p95 is much lower than current ceilings, loosen only if production runs actually pegging the ceiling. Data collection requires the cost tracking fix (c9dcde2) to be in prod — done.
+- **Review session 2026-04-10** — Long session that landed 7 commits touching agents, lib/claude.ts, orchestrators, inputs pipeline, scheduler and package.json. Need a fresh-eyes pass over the whole diff to catch anything rushed or inconsistent. Specific things to verify:
+  - All `MAX_TOKENS.*` values still make sense after seeing real usage data accumulate
+  - The `STRICT_JSON_DIRECTIVE` is appended correctly in all 8 agent system prompts (no missing one, no duplication)
+  - The `extractJsonBlock()` parser in claude.ts handles the full matrix of edge cases (the tests we observed in the backfill were limited)
+  - `agents/summaryExtractor.ts` — the new agent deserves a second look at its prompt and the formatted output shape that gets persisted in `extractedSummary`. Review whether the 4-field structure (docType / purpose / keyPoints / communicationalImplications) is the right shape for what the downstream content agents actually need
+  - `scheduler.ts` + `processing.service.ts` — the `brandVoice -> distillation` rename should stay aligned with `orchestrator.ts`. Check no other places still seed legacy step names
+  - `insights.ts` now loads foundational docs on its own (not via param). Confirm this pattern is fine long-term or if it should be lifted to the orchestrator
+  - The `POST /inputs/:id/inputs/:inputId/extract-summary` endpoint has no UI yet. Decide whether to add a "Regenerate summary" button per strategic doc in the inputs page, or leave it as operator-only
+  - Frontend `STEP_LABELS.brandVoice = "Brand Voice"` comment says "backward compat with existing runs" — verify the oldest legacy runs still render correctly
+  - Commits to re-review: `b84c66e`, `c9dcde2`, `739f159`, `ec3146a`, `302fd51`, `079e384`
+- **Data-driven maxTokens refinement** — First pass was done 2026-04-10 with calibrated values per agent based on static schema analysis (MAX_TOKENS constant in claude.ts). Should be revisited once APIUsageLog has accumulated ~20+ runs of real traffic to get p95/p99 distributions. First real data from the 2026-04-10 test run shows output percentages well under the ceilings (insights highest at 60%, the rest under 55%). Likely tweaks: tighten values if realistic p95 is much lower than current ceilings, loosen only if production runs actually peg the ceiling. Data collection is now unblocked by the cost tracking fix (c9dcde2).
 - **Refactor agent function signatures** — `runLinkedInAgent`, `runXAgent`, `runBlogAgent`, `runTikTokAgent` all take 12+ positional parameters. Each new cross-cutting feature (humanization, style, benchmark…) adds one more. Should become a single `{ instanceId, context, config }` object with destructuring. Refactor touches orchestrator + 4 agents. Francisco wants to discuss approach (incremental vs bulk, naming of context bundle) before executing.
-- **Horse Workflow E2E testing** — Code shipped 2026-04-04 but never fully tested end-to-end with real data. Need to: run full pipeline, verify consistency scores are useful (distribution between 6-9, not all 9.5), check lock fields are respected, validate benchmark diversity selection.
+- **Horse Workflow E2E testing** — Code shipped 2026-04-04 but never fully tested end-to-end with real data. Need to: run full pipeline, verify consistency scores are useful (distribution between 6-9, not all 9.5), check lock fields are respected, validate benchmark diversity selection. Partial validation already done 2026-04-10 (run completed cleanly with 11/11 drafts scored) but the score distribution was not inspected yet.
 
 ### Other Improvements
 1. **Drag & Drop file upload** — Support real file uploads (.txt, .pdf, .docx, WhatsApp .zip exports) with multer + storage
