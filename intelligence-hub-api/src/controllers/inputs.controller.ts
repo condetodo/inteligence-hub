@@ -32,4 +32,16 @@ export class InputsController {
       next(error);
     }
   }
+
+  static async regenerateSummary(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await InputsService.regenerateSummary(
+        param(req.params.id),
+        param(req.params.inputId),
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

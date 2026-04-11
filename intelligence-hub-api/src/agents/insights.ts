@@ -55,6 +55,16 @@ export async function runInsightsAgent(instanceId: string, weekNumber: number, y
     take: activeWindow,
   });
 
+  // Load foundational / strategic documents (same pattern as contentOrchestrator)
+  const foundationalDocs = await prisma.inputFile.findMany({
+    where: { instanceId, isFoundational: true },
+    select: { label: true, extractedSummary: true, type: true },
+  });
+  const strategicContext = foundationalDocs
+    .filter((d) => d.extractedSummary)
+    .map((d, i) => `${i + 1}. [${d.label || d.type}]: ${d.extractedSummary}`)
+    .join('\n');
+
   const userPrompt = `PERFIL BASE (DIGITAL TWIN):
 ${JSON.stringify({
     identity: brandVoice.identity,
@@ -64,6 +74,9 @@ ${JSON.stringify({
     narratives: (brandVoice as any).narratives || [],
     insightHistory: (brandVoice.insightHistory as any[])?.slice(-4) ?? [],
   }, null, 2)}
+
+DOCUMENTOS ESTRATEGICOS:
+${strategicContext || 'No hay documentos estrategicos cargados.'}
 
 CORPUS ACTUAL:
 ${JSON.stringify({
@@ -80,7 +93,7 @@ ${JSON.stringify(recentCorpuses.map((c) => ({
     summary: c.summary, topics: c.topics,
   })), null, 2)}
 
-Genera el reporte de inteligencia. Usa la memoria activa para detectar tendencias y cambios.`;
+Genera el reporte de inteligencia. Usa la memoria activa para detectar tendencias y cambios. Los documentos estrategicos definen el marco fundacional de la marca — usalos para evaluar si las tendencias del corpus refuerzan o se desvian del posicionamiento deseado.`;
 
   const { data: result, usage } = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt, MAX_TOKENS.insights);
 

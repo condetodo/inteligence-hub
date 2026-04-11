@@ -15,4 +15,5 @@ const createInputSchema = z.object({
 inputsRoutes.use(authenticate);
 inputsRoutes.get('/:id/inputs', InputsController.list);
 inputsRoutes.post('/:id/inputs', validateBody(createInputSchema), InputsController.create);
+inputsRoutes.post('/:id/inputs/:inputId/extract-summary', InputsController.regenerateSummary);
 inputsRoutes.delete('/:id/inputs/:inputId', InputsController.delete);
