@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const DISTILLATION_SYSTEM_PROMPT = `Eres un analista de inteligencia personal experto. Tu trabajo es actualizar el perfil base de un Digital Twin (representacion digital de un CEO o lider) basandote en nuevos datos semanales.
@@ -105,7 +105,7 @@ CAMPOS ESTATICOS BLOQUEADOS: ${brandVoice.staticFieldsLocked ? 'true — NO modi
 
 Actualiza el perfil base del Digital Twin con la nueva informacion.`;
 
-  const { data: result, usage } = await callOpus(DISTILLATION_SYSTEM_PROMPT, userPrompt, 8192);
+  const { data: result, usage } = await callOpus(DISTILLATION_SYSTEM_PROMPT, userPrompt, MAX_TOKENS.distillation);
 
   if (usage && runId) {
     await logUsage({

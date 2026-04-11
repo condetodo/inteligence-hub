@@ -22,6 +22,42 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 /**
+ * Calibrated max_tokens per agent step.
+ *
+ * Rationale: the previous defaults (Sonnet 4096, Opus 8192, Blog 12000) were
+ * arbitrary. Each agent now gets a ceiling sized against its realistic JSON
+ * output — content words plus structural overhead plus a 1.5x safety factor,
+ * rounded up to the next 1024.
+ *
+ * What this changes:
+ *  - Runaway generations get cut earlier (observability win)
+ *  - Content that breaks the ceiling will surface as a real signal, not noise
+ *  - Normal traffic is unaffected: Claude only uses what it needs
+ *
+ * What this does NOT change:
+ *  - Pricing. API cost scales with actual output tokens, not this ceiling
+ *  - Normal completions. Agents generating 2k tokens under an 8k ceiling
+ *    will keep generating 2k tokens under a 4k ceiling
+ *
+ * These values were derived from static schema analysis in April 2026. They
+ * should be revisited with real p95/p99 data once APIUsageLog has accumulated
+ * enough runs (see ROADMAP — data-driven refinement pending).
+ */
+export const MAX_TOKENS = {
+  // Pipeline agents
+  corpus: 4096,          // summary + topics + decisions + concerns + opportunities
+  distillation: 6144,    // updatedFields + topics + contacts + narratives + weeklyInsight
+  insights: 4096,        // executiveSummary + topTopics + opportunity + evolution + recommendations
+  consistency: 6144,     // scores + notes for up to ~15 drafts
+
+  // Content agents
+  linkedin: 6144,        // N posts × 3 variants × ~200 words each
+  x: 2048,               // N short tweets + 1 thread of 5-8 tweets
+  tiktok: 3072,          // N scripts of 60-90 seconds
+  blog: 4096,            // 1 article of 800-1200 words
+} as const;
+
+/**
  * Canonical JSON output directive. Append this to every agent's system prompt
  * (after the FORMATO DE RESPUESTA block) to guarantee pure-JSON responses.
  *

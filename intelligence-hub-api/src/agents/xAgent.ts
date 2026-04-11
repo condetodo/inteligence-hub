@@ -1,4 +1,4 @@
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -116,7 +116,7 @@ export async function runXAgent(
   // 1. Generate content via LLM
   const systemPrompt = buildXSystemPrompt(tweetCount, threadCount);
   const userPrompt = buildXUserPrompt(brandVoice, corpus, tweetCount, threadCount, strategicContext, configContext, benchmark, styleContext, humanizationContext);
-  const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: XSkillOutput; usage: any };
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt, MAX_TOKENS.x) as unknown as { data: XSkillOutput; usage: any };
 
   if (usage && runId) {
     await logUsage({

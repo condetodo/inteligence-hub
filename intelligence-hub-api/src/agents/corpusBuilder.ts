@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const CORPUS_SYSTEM_PROMPT = `Eres un analista de comunicaciones experto. Tu trabajo es procesar conversaciones, emails y notas en bruto y extraer informacion estructurada.
@@ -82,7 +82,7 @@ export async function runCorpusBuilder(
 
   const userPrompt = `Procesa los siguientes ${allInputs.length} inputs de este periodo y extrae informacion estructurada:\n\n${inputTexts}`;
 
-  const { data: result, usage } = await callOpus(CORPUS_SYSTEM_PROMPT, userPrompt, 8192);
+  const { data: result, usage } = await callOpus(CORPUS_SYSTEM_PROMPT, userPrompt, MAX_TOKENS.corpus);
 
   if (usage && runId) {
     await logUsage({

@@ -1,4 +1,4 @@
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -113,7 +113,7 @@ export async function runBlogAgent(
   // 1. Generate content via LLM (blog uses higher maxTokens)
   const systemPrompt = buildBlogSystemPrompt(articleCount);
   const userPrompt = buildBlogUserPrompt(brandVoice, corpus, articleCount, strategicContext, configContext, benchmark, styleContext, humanizationContext);
-  const { data: result, usage } = await callOpus(systemPrompt, userPrompt, 12000) as unknown as { data: BlogSkillOutput; usage: any };
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt, MAX_TOKENS.blog) as unknown as { data: BlogSkillOutput; usage: any };
 
   if (usage && runId) {
     await logUsage({

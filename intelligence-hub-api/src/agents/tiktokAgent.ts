@@ -1,4 +1,4 @@
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -106,7 +106,7 @@ export async function runTikTokAgent(
   // 1. Generate content via LLM
   const systemPrompt = buildTikTokSystemPrompt(scriptCount);
   const userPrompt = buildTikTokUserPrompt(brandVoice, corpus, scriptCount, strategicContext, configContext, benchmark, styleContext, humanizationContext);
-  const { data: result, usage } = await callOpus(systemPrompt, userPrompt) as unknown as { data: TikTokSkillOutput; usage: any };
+  const { data: result, usage } = await callOpus(systemPrompt, userPrompt, MAX_TOKENS.tiktok) as unknown as { data: TikTokSkillOutput; usage: any };
 
   if (usage && runId) {
     await logUsage({

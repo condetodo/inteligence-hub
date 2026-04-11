@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma';
-import { callOpus, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callOpus, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { logUsage } from '../lib/usageLogger';
 
 const INSIGHTS_SYSTEM_PROMPT = `Eres un analista de inteligencia de negocios experto. Generas reportes semanales profundos y accionables para lideres empresariales.
@@ -82,7 +82,7 @@ ${JSON.stringify(recentCorpuses.map((c) => ({
 
 Genera el reporte de inteligencia. Usa la memoria activa para detectar tendencias y cambios.`;
 
-  const { data: result, usage } = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt);
+  const { data: result, usage } = await callOpus(INSIGHTS_SYSTEM_PROMPT, userPrompt, MAX_TOKENS.insights);
 
   if (usage && runId) {
     await logUsage({

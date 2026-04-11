@@ -1,4 +1,4 @@
-import { callSonnet, STRICT_JSON_DIRECTIVE } from '../lib/claude';
+import { callSonnet, STRICT_JSON_DIRECTIVE, MAX_TOKENS } from '../lib/claude';
 import { prisma } from '../lib/prisma';
 import { logUsage } from '../lib/usageLogger';
 
@@ -65,7 +65,7 @@ POSTS RECIENTES APROBADOS (para check de diversidad):
 ${recentApproved.map((a) => a.content.substring(0, 200)).join('\n---\n')}
 `;
 
-  const { data: result, usage } = await callSonnet(CONSISTENCY_SYSTEM_PROMPT, userPrompt, 4096);
+  const { data: result, usage } = await callSonnet(CONSISTENCY_SYSTEM_PROMPT, userPrompt, MAX_TOKENS.consistency);
 
   if (usage && runId) {
     await logUsage({
